@@ -1,0 +1,118 @@
+<div class="schedule-page">
+  <header class="schedule-header">
+    <div>
+      <h1>Schedule</h1>
+      <p>Manage your appointments for October 24 - 30</p>
+    </div>
+    <div class="header-actions">
+      <div class="view-toggle">
+        @for (view of viewModes; track view) {
+          <button type="button" [class.active]="view === activeView" (click)="setView(view)">
+            {{ view }}
+          </button>
+        }
+      </div>
+      <button type="button" class="quick-add-btn">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+        </svg>
+        Quick Add
+      </button>
+    </div>
+  </header>
+
+  <div class="schedule-body">
+    <aside class="schedule-side">
+      <div class="card calendar-card">
+        <div class="calendar-header">
+          <h3>{{ monthLabel }}</h3>
+          <div class="calendar-nav">
+            <button type="button" aria-label="Previous month">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+            <button type="button" aria-label="Next month">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="calendar-grid-row weekday-row">
+          @for (wd of weekdayHeaders; track $index) {
+            <span class="weekday-label">{{ wd }}</span>
+          }
+        </div>
+        @for (week of calendarWeeks; track $index) {
+          <div class="calendar-grid-row">
+            @for (d of week; track $index) {
+              <span class="calendar-day" [class.muted]="!d.currentMonth" [class.selected]="d.selected">
+                {{ d.day }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="card overview-card">
+        <h3>Today's Overview</h3>
+        <div class="overview-list">
+          @for (stat of overviewStats; track stat.label) {
+            <div class="overview-row">
+              <span class="overview-dot" [style.background]="stat.color"></span>
+              <span class="overview-label">{{ stat.label }}</span>
+              <span class="overview-value">{{ stat.value }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </aside>
+
+    <div class="card week-grid-card">
+      <div class="week-grid">
+        <div class="grid-cell time-header">Time</div>
+        @for (wd of weekDays; track wd.label) {
+          <div class="grid-cell day-header" [class.active-col]="wd.active" [style.grid-column]="dayColumn(wd.label)">
+            <span class="day-label">{{ wd.label }}</span>
+            <span class="day-date">{{ wd.date }}</span>
+          </div>
+        }
+
+        @for (slot of timeSlots; track slot; let i = $index) {
+          <div class="grid-cell time-label" [style.grid-row]="i + 2">{{ slot }}</div>
+          @for (wd of weekDays; track wd.label) {
+            <div
+              class="grid-cell body-cell"
+              [class.active-col]="wd.active"
+              [style.grid-row]="i + 2"
+              [style.grid-column]="dayColumn(wd.label)"
+            ></div>
+          }
+        }
+
+        @for (appt of appointments; track appt.patient) {
+          <div
+            class="appointment-card"
+            [class.confirmed]="appt.status === 'confirmed'"
+            [class.pending]="appt.status === 'pending'"
+            [class.cancelled]="appt.status === 'cancelled'"
+            [style.grid-column]="dayColumn(appt.day)"
+            [style.grid-row]="(appt.rowStart + 2) + ' / span ' + appt.rowSpan"
+          >
+            <span class="appointment-name">{{ appt.patient }}</span>
+            @if (appt.statusLabel) {
+              <span class="appointment-status">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+                  <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                {{ appt.statusLabel }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

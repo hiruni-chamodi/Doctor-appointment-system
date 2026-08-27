@@ -1,0 +1,55 @@
+<!-- Top Navigation -->
+<header class="bg-surface shadow-sm h-20 flex items-center px-8 max-w-7xl mx-auto justify-between sticky top-0 z-50">
+  <div class="text-[24px] font-bold text-primary">
+    Zenith Medical
+  </div>
+  <a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2" href="#">
+    <span class="material-symbols-outlined">close</span>
+    <span class="font-medium text-sm">Cancel</span>
+  </a>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 md:px-8 py-16">
+  <!-- Header -->
+  <div class="text-center mb-12">
+    <h1 class="text-3xl font-bold text-primary mb-4">Create Your Account</h1>
+    <p class="text-lg text-on-surface-variant">Welcome to Zenith Medical. Let's get you set up for your first visit.</p>
+  </div>
+
+  <!-- Form Container -->
+  <div class="glass-card rounded-[16px] p-8 md:p-12">
+    <form>
+      <h2 class="text-2xl font-semibold text-primary mb-6 border-b border-surface-variant pb-4">Personal Information</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <label class="block font-medium text-sm text-on-surface mb-2" for="firstName">First Name</label>
+          <input [(ngModel)]="firstName" name="firstName" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-on-surface" id="firstName" placeholder="Jane" type="text"/>
+        </div>
+
+        <div>
+          <label class="block font-medium text-sm text-on-surface mb-2" for="lastName">Last Name</label>
+          <input [(ngModel)]="lastName" name="lastName" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-on-surface" id="lastName" placeholder="Doe" type="text"/>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block font-medium text-sm text-on-surface mb-2" for="email">Email Address</label>
+          <input [(ngModel)]="email" name="email" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-on-surface" id="email" placeholder="jane.doe@example.com" type="email"/>
+        </div>
+
+        <div>
+          <label class="block font-medium text-sm text-on-surface mb-2" for="phone">Phone Number</label>
+          <input [(ngModel)]="phone" name="phone" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-on-surface" id="phone" placeholder="(555) 123-4567" type="tel"/>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-surface-variant">
+        <button (click)="submitRegistration()" class="px-8 py-3 rounded-lg font-medium text-white bg-primary hover:bg-opacity-90 transition-colors shadow-sm flex items-center gap-2" type="button">
+          Submit Registration
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</main>

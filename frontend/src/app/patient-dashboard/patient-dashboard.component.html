@@ -1,9 +1,17 @@
-<div class="min-h-screen bg-slate-50 p-8 font-sans">
-  
+<div class="layout-shell">
+  <app-sidebar
+    [profileName]="profileName"
+    [profileRole]="profileRole"
+    [primaryActionLabel]="primaryActionLabel"
+    [navItems]="navItems"
+  ></app-sidebar>
+
+  <div class="layout-content bg-slate-50 p-8 font-sans">
+
   <!-- Header Section -->
   <div class="mb-10">
     <h1 class="text-3xl font-bold text-[#0A3F35]">My Medical Journey</h1>
-    <p class="text-gray-500 mt-2">Welcome back. Here is a summary of your recent and upcoming health activities.</p>
+    <p class="text-gray-500 mt-2">Welcome back, {{ profileName }}. Here is a summary of your recent and upcoming health activities.</p>
   </div>
 
 <!-- Recent Vitals Section -->
@@ -196,5 +204,6 @@
       </div>
     </div>
   </div>
-  
+
+  </div>
 </div>

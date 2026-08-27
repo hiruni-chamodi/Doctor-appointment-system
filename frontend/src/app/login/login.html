@@ -41,8 +41,12 @@
           </div>
         </div>
 
-        <button (click)="submitLogin()" class="w-full px-8 py-3 rounded-lg font-medium text-white bg-primary hover:bg-opacity-90 transition-colors shadow-sm flex items-center justify-center gap-2" type="button">
-          Sign In
+        @if (errorMessage) {
+          <p class="text-red-600 text-sm font-medium mb-6">{{ errorMessage }}</p>
+        }
+
+        <button (click)="submitLogin()" [disabled]="isSubmitting" class="w-full px-8 py-3 rounded-lg font-medium text-white bg-primary hover:bg-opacity-90 transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60" type="button">
+          {{ isSubmitting ? 'Signing In...' : 'Sign In' }}
           <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </button>
 

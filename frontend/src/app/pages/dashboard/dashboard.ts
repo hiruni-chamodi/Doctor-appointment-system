@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AuthService } from '../../services/auth.service';
 
 interface BookingDay {
   label: string;
@@ -19,7 +20,7 @@ interface Doctor {
   styleUrl: './dashboard.css',
 })
 export class Dashboard {
-  protected readonly doctorName = 'Dr. Zenith';
+  protected readonly doctorName: string;
 
   protected readonly stats = {
     todaysAppointments: 24,
@@ -40,4 +41,8 @@ export class Dashboard {
     { name: 'Dr. S. Lee', specialty: 'Pediatrics', initials: 'SL' },
     { name: 'Dr. B. Jones', specialty: 'General', initials: 'BJ' },
   ];
+
+  constructor(private authService: AuthService) {
+    this.doctorName = this.authService.getCurrentUser()?.fullName ?? 'Doctor';
+  }
 }

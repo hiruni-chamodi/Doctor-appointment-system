@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -11,18 +12,36 @@ import { Router, RouterLink } from '@angular/router';
 export class Login {
   email = '';
   password = '';
+  errorMessage = '';
+  isSubmitting = false;
 
-  constructor(private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
   submitLogin() {
-    // TODO: wire this up to a real authentication endpoint once the backend exposes one.
-    // For now, treat any submitted credentials as a successful login.
     if (!this.email || !this.password) {
-      alert('Please enter both email and password.');
+      this.errorMessage = 'Please enter both email and password.';
       return;
     }
 
-    console.log('Logging in as:', this.email);
-    this.router.navigate(['/patient-dashboard']);
+    this.errorMessage = '';
+    this.isSubmitting = true;
+
+    this.authService.login(this.email, this.password).subscribe({
+      next: (user) => {
+        this.isSubmitting = false;
+        if (user.role === 'DOCTOR') {
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.router.navigate(['/patient-dashboard']);
+        }
+      },
+      error: (err) => {
+        this.isSubmitting = false;
+        this.errorMessage = err?.error?.message ?? 'Unable to sign in. Please try again.';
+      },
+    });
   }
 }

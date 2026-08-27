@@ -8,17 +8,20 @@ import { Schedule } from './pages/schedule/schedule';
 import { Patients } from './pages/patients/patients';
 import { MedicalRecords } from './pages/medical-records/medical-records';
 import { Settings } from './pages/settings/settings';
+import { HelpCenter } from './pages/help-center/help-center';
+import { doctorGuard, patientGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login },
   { path: 'register', component: PatientRegistrationComponent },
-  { path: 'patient-dashboard', component: PatientDashboardComponent },
+  { path: 'help-center', component: HelpCenter },
+  { path: 'patient-dashboard', component: PatientDashboardComponent, canActivate: [patientGuard] },
   {
     path: '',
     component: MainLayout,
     children: [
-      { path: 'dashboard', component: Dashboard },
+      { path: 'dashboard', component: Dashboard, canActivate: [doctorGuard] },
       { path: 'schedule', component: Schedule },
       { path: 'patients', component: Patients },
       { path: 'records', component: MedicalRecords },

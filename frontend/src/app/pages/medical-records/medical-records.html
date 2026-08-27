@@ -1,4 +1,88 @@
-<div class="page-placeholder">
+<div class="records-page">
   <h1>Medical Records</h1>
-  <p>This page is coming soon.</p>
+  <p class="subtitle">Browse patient records.</p>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+        <path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        [ngModelOptions]="{ standalone: true }"
+        (input)="onSearchInput()"
+        (focus)="onSearchInput()"
+        (blur)="closeDropdown()"
+        placeholder="Search patient by name..."
+      />
+    </div>
+
+    @if (showSearchDropdown()) {
+      <div class="search-dropdown">
+        @if (searchResults().length) {
+          @for (result of searchResults(); track result.id) {
+            <button type="button" class="search-result" (mousedown)="selectPatient(result)">
+              {{ result.fullName }}
+            </button>
+          }
+        } @else {
+          <div class="search-empty">No patients found</div>
+        }
+      </div>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-card">Loading patients…</div>
+  } @else if (loadError()) {
+    <div class="state-card error">{{ loadError() }}</div>
+  } @else if (patients().length === 0) {
+    <div class="state-card">No patients registered yet.</div>
+  } @else {
+    <div class="carousel">
+      @if (patients().length > 1) {
+        <button type="button" class="nav-arrow" (click)="previous()" aria-label="Previous patient">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      }
+
+      <div class="patient-card">
+        @if (currentPatient(); as patient) {
+          <div class="patient-avatar">{{ patient.fullName.charAt(0) }}</div>
+          <h2>{{ patient.fullName }}</h2>
+          <p class="patient-email">{{ patient.email }}</p>
+
+          <div class="patient-info-grid">
+            <div class="info-block">
+              <span class="info-label">Blood Type</span>
+              <span class="info-value">{{ patient.bloodType }}</span>
+            </div>
+            <div class="info-block">
+              <span class="info-label">Last Visit</span>
+              <span class="info-value">{{ patient.lastVisitDate }}</span>
+            </div>
+            <div class="info-block info-block-wide">
+              <span class="info-label">Allergies</span>
+              <span class="info-value">{{ patient.allergies.join(', ') }}</span>
+            </div>
+          </div>
+        }
+
+        <div class="patient-counter">Patient {{ currentIndex() + 1 }} of {{ patients().length }}</div>
+      </div>
+
+      @if (patients().length > 1) {
+        <button type="button" class="nav-arrow" (click)="next()" aria-label="Next patient">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      }
+    </div>
+  }
 </div>

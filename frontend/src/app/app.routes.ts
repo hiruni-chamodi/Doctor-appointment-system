@@ -10,6 +10,10 @@ import { MedicalRecords } from './pages/medical-records/medical-records';
 import { Settings } from './pages/settings/settings';
 import { HelpCenter } from './pages/help-center/help-center';
 import { doctorGuard, patientGuard } from './guards/auth.guard';
+import { FindDoctor } from './find-doctor/find-doctor';
+import { MyAppointments } from './my-appointments/my-appointments';
+import { PatientMedicalRecords } from './patient-medical-records/patient-medical-records';
+import { ProfileSettings } from './profile-settings/profile-settings';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -17,6 +21,10 @@ export const routes: Routes = [
   { path: 'register', component: PatientRegistrationComponent },
   { path: 'help-center', component: HelpCenter },
   { path: 'patient-dashboard', component: PatientDashboardComponent, canActivate: [patientGuard] },
+  { path: 'find-doctor', component: FindDoctor, canActivate: [patientGuard] },
+  { path: 'my-appointments', component: MyAppointments, canActivate: [patientGuard] },
+  { path: 'medical-records', component: PatientMedicalRecords, canActivate: [patientGuard] },
+  { path: 'profile', component: ProfileSettings, canActivate: [patientGuard] },
   {
     path: '',
     component: MainLayout,

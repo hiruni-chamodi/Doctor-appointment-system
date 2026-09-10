@@ -2,7 +2,16 @@
   <header class="schedule-header">
     <div>
       <h1>Schedule</h1>
-      <p>Manage your appointments for October 24 - 30</p>
+      <div class="period-nav">
+        <button type="button" class="period-nav-btn" (click)="goPrev()" aria-label="Previous">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+        <button type="button" class="period-nav-btn" (click)="goNext()" aria-label="Next">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+        <button type="button" class="today-btn" (click)="goToday()">Today</button>
+        <p>{{ periodLabel }}</p>
+      </div>
     </div>
     <div class="header-actions">
       <div class="view-toggle">
@@ -26,18 +35,6 @@
       <div class="card calendar-card">
         <div class="calendar-header">
           <h3>{{ monthLabel }}</h3>
-          <div class="calendar-nav">
-            <button type="button" aria-label="Previous month">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
-            <button type="button" aria-label="Next month">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
-          </div>
         </div>
         <div class="calendar-grid-row weekday-row">
           @for (wd of weekdayHeaders; track $index) {
@@ -47,16 +44,24 @@
         @for (week of calendarWeeks; track $index) {
           <div class="calendar-grid-row">
             @for (d of week; track $index) {
-              <span class="calendar-day" [class.muted]="!d.currentMonth" [class.selected]="d.selected">
-                {{ d.day }}
-              </span>
+              <button
+                type="button"
+                class="calendar-day"
+                [class.muted]="!d.date"
+                [class.today]="d.isToday"
+                [class.selected]="d.isSelected"
+                [disabled]="!d.date"
+                (click)="selectMiniDay(d)"
+              >
+                {{ d.date ? d.day : '' }}
+              </button>
             }
           </div>
         }
       </div>
 
       <div class="card overview-card">
-        <h3>Today's Overview</h3>
+        <h3>This Week's Overview</h3>
         <div class="overview-list">
           @for (stat of overviewStats; track stat.label) {
             <div class="overview-row">
@@ -70,49 +75,110 @@
     </aside>
 
     <div class="card week-grid-card">
-      <div class="week-grid">
-        <div class="grid-cell time-header">Time</div>
-        @for (wd of weekDays; track wd.label) {
-          <div class="grid-cell day-header" [class.active-col]="wd.active" [style.grid-column]="dayColumn(wd.label)">
-            <span class="day-label">{{ wd.label }}</span>
-            <span class="day-date">{{ wd.date }}</span>
-          </div>
-        }
-
-        @for (slot of timeSlots; track slot; let i = $index) {
-          <div class="grid-cell time-label" [style.grid-row]="i + 2">{{ slot }}</div>
-          @for (wd of weekDays; track wd.label) {
-            <div
-              class="grid-cell body-cell"
-              [class.active-col]="wd.active"
-              [style.grid-row]="i + 2"
-              [style.grid-column]="dayColumn(wd.label)"
-            ></div>
+      @if (isLoading()) {
+        <div class="schedule-loading-state">Loading your schedule…</div>
+      } @else if (loadError()) {
+        <div class="schedule-loading-state schedule-error-state">{{ loadError() }}</div>
+      } @else if (activeView === 'Day') {
+        <!-- Day View -->
+        <div class="day-view">
+          @for (slot of timeSlots; track slot) {
+            <div class="day-row">
+              <div class="day-row-time">{{ slot }}</div>
+              <div class="day-row-body">
+                @if (appointmentAt(anchorIso, slot); as appt) {
+                  <div class="appointment-card day-appointment-card" [class.confirmed]="appt.status === 'CONFIRMED'" [class.pending]="appt.status === 'PENDING'">
+                    <span class="appointment-name">{{ appt.patientName }}</span>
+                    <span class="appointment-status">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+                        <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                      {{ appt.status === 'CONFIRMED' ? 'Confirmed' : 'Pending' }}
+                    </span>
+                  </div>
+                } @else {
+                  <span class="day-row-empty">No appointment</span>
+                }
+              </div>
+            </div>
           }
-        }
+        </div>
+      } @else if (activeView === 'Month') {
+        <!-- Month View -->
+        <div class="month-view">
+          <div class="calendar-grid-row weekday-row month-weekday-row">
+            @for (wd of weekdayHeaders; track $index) {
+              <span class="weekday-label">{{ wd }}</span>
+            }
+          </div>
+          @for (week of calendarWeeks; track $index) {
+            <div class="month-grid-row">
+              @for (d of week; track $index) {
+                <div class="month-cell" [class.muted]="!d.date" [class.today]="d.isToday" (click)="selectMonthDay(d)">
+                  @if (d.date) {
+                    <span class="month-cell-day">{{ d.day }}</span>
+                    <div class="month-cell-appts">
+                      @for (appt of appointmentsOn(isoOf(d)); track appt.id; let i = $index) {
+                        @if (i < 2) {
+                          <span class="month-chip" [class.confirmed]="appt.status === 'CONFIRMED'" [class.pending]="appt.status === 'PENDING'">
+                            {{ appt.time }} {{ appt.patientName }}
+                          </span>
+                        }
+                      }
+                      @if (appointmentsOn(isoOf(d)).length > 2) {
+                        <span class="month-chip-more">+{{ appointmentsOn(isoOf(d)).length - 2 }} more</span>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Week View -->
+        <div class="week-grid">
+          <div class="grid-cell time-header">Time</div>
+          @for (wd of weekDays; track wd.iso) {
+            <div class="grid-cell day-header" [class.active-col]="wd.active" [style.grid-column]="dayColumn(wd.iso)">
+              <span class="day-label">{{ wd.label }}</span>
+              <span class="day-date">{{ wd.date }}</span>
+            </div>
+          }
 
-        @for (appt of appointments; track appt.patient) {
-          <div
-            class="appointment-card"
-            [class.confirmed]="appt.status === 'confirmed'"
-            [class.pending]="appt.status === 'pending'"
-            [class.cancelled]="appt.status === 'cancelled'"
-            [style.grid-column]="dayColumn(appt.day)"
-            [style.grid-row]="(appt.rowStart + 2) + ' / span ' + appt.rowSpan"
-          >
-            <span class="appointment-name">{{ appt.patient }}</span>
-            @if (appt.statusLabel) {
+          @for (slot of timeSlots; track slot; let i = $index) {
+            <div class="grid-cell time-label" [style.grid-row]="i + 2">{{ slot }}</div>
+            @for (wd of weekDays; track wd.iso) {
+              <div
+                class="grid-cell body-cell"
+                [class.active-col]="wd.active"
+                [style.grid-row]="i + 2"
+                [style.grid-column]="dayColumn(wd.iso)"
+              ></div>
+            }
+          }
+
+          @for (appt of weekAppointments; track appt.id) {
+            <div
+              class="appointment-card"
+              [class.confirmed]="appt.status === 'CONFIRMED'"
+              [class.pending]="appt.status === 'PENDING'"
+              [style.grid-column]="dayColumn(appt.date)"
+              [style.grid-row]="(rowForTime(appt.time) + 2) + ' / span 1'"
+            >
+              <span class="appointment-name">{{ appt.patientName }}</span>
               <span class="appointment-status">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
                   <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
-                {{ appt.statusLabel }}
+                {{ appt.status === 'CONFIRMED' ? 'Confirmed' : 'Pending' }}
               </span>
-            }
-          </div>
-        }
-      </div>
+            </div>
+          }
+        </div>
+      }
     </div>
   </div>
 </div>

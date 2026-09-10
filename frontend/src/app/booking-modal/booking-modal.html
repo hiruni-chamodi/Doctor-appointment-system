@@ -25,19 +25,18 @@
 
           <!-- Avatar & Header -->
           <div class="flex gap-5 items-center mb-6">
-            <img [src]="avatarUrl" class="w-24 h-24 rounded-full object-cover" [alt]="doctorName">
+            <div class="w-24 h-24 rounded-full bg-emerald-50 text-[#0A3F35] flex items-center justify-center text-2xl font-bold" [attr.aria-label]="doctorName">
+              {{ avatarInitials }}
+            </div>
             <div>
               <h3 class="text-2xl font-bold text-[#0A3F35]">{{ doctorName }}</h3>
               <p class="text-gray-600 font-medium">{{ doctorRole }}</p>
-              <div class="flex items-center text-sm mt-1 text-orange-400 font-bold">
-                <span>★ 4.9 <span class="text-gray-400 font-medium">(128 reviews)</span></span>
-              </div>
             </div>
           </div>
 
           <!-- Bio -->
           <p class="text-gray-600 leading-relaxed mb-8">
-            {{ doctorName }} is a board-certified {{ doctorRole }} with over 15 years of experience specializing in preventive care and patient-first treatment. Combining advanced diagnostics with compassionate care to keep you at your best.
+            Book a visit with {{ doctorName }} through Zenith Medical's patient portal.
           </p>
 
           <hr class="border-gray-100 mb-8">
@@ -80,58 +79,86 @@
         <!-- Right Column: Calendar & Times -->
         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col">
 
-          <!-- Calendar Header -->
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-[#0A3F35]">Select Date & Time</h3>
-            <div class="flex items-center gap-4 text-gray-900 font-bold">
-              <button class="text-gray-400 hover:text-gray-900"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-              October 2023
-              <button class="text-gray-400 hover:text-gray-900"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
-            </div>
-          </div>
-
-          <!-- Calendar Grid (Mocked for visual) -->
-          <div class="mb-8">
-            <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400 mb-4 tracking-wider">
-              <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-            </div>
-            <div class="grid grid-cols-7 text-center gap-y-6 text-gray-900 font-medium">
-              <!-- Empty slots -->
-              <div></div><div></div>
-              <div class="text-gray-300">1</div><div class="text-gray-300">2</div><div class="text-gray-300">3</div><div class="text-gray-300">4</div><div class="text-gray-300">5</div>
-              <div class="text-gray-300">6</div><div class="text-gray-300">7</div><div>8</div><div>9</div>
-
-              <!-- Selected Date -->
-              <div class="relative flex justify-center items-center">
-                <div class="absolute w-12 h-12 bg-[#0A3F35] rounded-full flex items-center justify-center text-white font-bold shadow-md">10</div>
+          @if (submitState() === 'success') {
+            <!-- Success State -->
+            <div class="flex-1 flex flex-col items-center justify-center text-center py-12">
+              <div class="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center text-[#0A3F35] mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
               </div>
-
-              <div>11</div><div>12</div><div>13</div><div>14</div><div>15</div><div>16</div><div>17</div><div>18</div><div class="text-gray-300">19</div>
+              <h4 class="text-xl font-bold text-[#0A3F35] mb-2">Request sent!</h4>
+              <p class="text-gray-500 max-w-sm mb-8">
+                {{ doctorName }} will review your request for {{ selectedTime() }} on {{ selectedDateLabel }} and confirm or decline it shortly.
+              </p>
+              <button class="bg-[#0A3F35] text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-900 transition shadow-md" (click)="onClose()">
+                Done
+              </button>
             </div>
-          </div>
+          } @else {
+            <!-- Calendar Header -->
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-2xl font-bold text-[#0A3F35]">Select Date & Time</h3>
+              <div class="flex items-center gap-4 text-gray-900 font-bold">
+                <button class="text-gray-400 hover:text-gray-900" (click)="prevMonth()" aria-label="Previous month"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                {{ monthLabel }}
+                <button class="text-gray-400 hover:text-gray-900" (click)="nextMonth()" aria-label="Next month"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+              </div>
+            </div>
 
-          <hr class="border-gray-100 mb-6">
-
-          <!-- Time Slots -->
-          <div class="flex-1">
-            <p class="font-medium text-gray-900 mb-4">Available Slots on Oct 10</p>
-            <div class="grid grid-cols-3 gap-3">
-              @for (slot of timeSlots; track slot) {
-                <button
-                  [class]="slotClasses(slot)"
-                  (click)="selectTime(slot)"
-                >{{ slot }}</button>
+            <!-- Calendar Grid -->
+            <div class="mb-8">
+              <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400 mb-4 tracking-wider">
+                <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+              </div>
+              @for (week of calendarWeeks; track $index) {
+                <div class="grid grid-cols-7 text-center gap-y-2 text-gray-900 font-medium mb-2">
+                  @for (cell of week; track $index) {
+                    <div class="relative flex justify-center items-center h-10">
+                      @if (cell.date) {
+                        <button
+                          type="button"
+                          (click)="selectDate(cell)"
+                          [disabled]="cell.isPast"
+                          [class]="dayClasses(cell)"
+                        >{{ cell.day }}</button>
+                      }
+                    </div>
+                  }
+                </div>
               }
             </div>
-          </div>
 
-          <!-- Confirm Button -->
-          <div class="mt-8 flex justify-end">
-            <button class="bg-[#0A3F35] text-white px-8 py-3.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-900 transition shadow-md" (click)="onConfirm()">
-              Confirm Booking
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </button>
-          </div>
+            <hr class="border-gray-100 mb-6">
+
+            <!-- Time Slots -->
+            <div class="flex-1">
+              <p class="font-medium text-gray-900 mb-4">Available Slots on {{ selectedDateLabel }}</p>
+              <div class="grid grid-cols-3 gap-3">
+                @for (slot of timeSlots; track slot) {
+                  <button
+                    [class]="slotClasses(slot)"
+                    [disabled]="isSlotTaken(slot)"
+                    (click)="selectTime(slot)"
+                  >{{ slot }}</button>
+                }
+              </div>
+            </div>
+
+            @if (submitState() === 'error' && submitError()) {
+              <p class="mt-4 text-sm font-semibold text-red-600">{{ submitError() }}</p>
+            }
+
+            <!-- Confirm Button -->
+            <div class="mt-8 flex justify-end">
+              <button
+                class="bg-[#0A3F35] text-white px-8 py-3.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-900 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!selectedTime() || submitState() === 'submitting'"
+                (click)="onConfirm()"
+              >
+                {{ submitState() === 'submitting' ? 'Sending Request…' : 'Request Appointment' }}
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
+            </div>
+          }
 
         </div>
       </div>

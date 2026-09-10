@@ -10,95 +10,77 @@
     <!-- Navigation Tabs -->
     <div class="border-b border-gray-200 mb-8">
       <nav class="-mb-px flex gap-8">
-        <button class="border-b-2 border-[#0A3F35] text-[#0A3F35] whitespace-nowrap py-4 px-1 font-bold text-sm">
-          Upcoming (2)
+        <button type="button" (click)="setTab('upcoming')" [class]="tabClasses('upcoming')">
+          Upcoming ({{ upcoming.length }})
         </button>
-        <button class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 font-medium text-sm transition">
-          Past Appointments
+        <button type="button" (click)="setTab('past')" [class]="tabClasses('past')">
+          Past Appointments ({{ past.length }})
         </button>
-        <button class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 font-medium text-sm transition">
-          Canceled
+        <button type="button" (click)="setTab('canceled')" [class]="tabClasses('canceled')">
+          Canceled ({{ canceled.length }})
         </button>
       </nav>
     </div>
 
     <!-- Appointments List -->
-    <div class="space-y-6">
-
-      <!-- Appointment Card 1 -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 flex flex-col md:flex-row gap-6 lg:gap-8 items-start md:items-center hover:shadow-md transition">
-
-        <!-- Date Block -->
-        <div class="bg-slate-50 rounded-xl p-4 text-center min-w-[100px] border border-gray-100 shrink-0">
-          <div class="text-sm font-bold text-gray-500 uppercase tracking-wider">Nov</div>
-          <div class="text-3xl font-bold text-gray-900 my-1">14</div>
-          <div class="text-xs font-bold text-gray-400">TUESDAY</div>
-        </div>
-
-        <!-- Doctor & Details -->
-        <div class="flex-1 w-full">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold tracking-wide">Confirmed</span>
-            <span class="text-gray-900 font-bold flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              10:30 AM
-            </span>
-          </div>
-
-          <h3 class="text-2xl font-bold text-gray-900 mb-1">Dr. Sarah Jenkins</h3>
-          <p class="text-[#0A3F35] font-medium text-sm mb-3">Cardiology Consultation</p>
-
-          <div class="flex items-center gap-2 text-sm text-gray-500">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
-            Zenith Medical Center • Room 402
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex flex-col sm:flex-row md:flex-col gap-3 w-full md:w-auto shrink-0 mt-4 md:mt-0">
-          <button class="w-full bg-white border border-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm text-sm">Reschedule</button>
-          <button class="w-full bg-red-50 text-red-600 px-6 py-2.5 rounded-xl font-bold hover:bg-red-100 transition text-sm">Cancel Visit</button>
-        </div>
-
+    @if (isLoading()) {
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-gray-500">
+        Loading your appointments…
       </div>
-
-      <!-- Appointment Card 2 -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 flex flex-col md:flex-row gap-6 lg:gap-8 items-start md:items-center hover:shadow-md transition">
-
-        <!-- Date Block -->
-        <div class="bg-slate-50 rounded-xl p-4 text-center min-w-[100px] border border-gray-100 shrink-0">
-          <div class="text-sm font-bold text-gray-500 uppercase tracking-wider">Dec</div>
-          <div class="text-3xl font-bold text-gray-900 my-1">02</div>
-          <div class="text-xs font-bold text-gray-400">FRIDAY</div>
-        </div>
-
-        <!-- Doctor & Details -->
-        <div class="flex-1 w-full">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-bold tracking-wide">Pending</span>
-            <span class="text-gray-900 font-bold flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              02:00 PM
-            </span>
-          </div>
-
-          <h3 class="text-2xl font-bold text-gray-900 mb-1">Dr. Marcus Vance</h3>
-          <p class="text-[#0A3F35] font-medium text-sm mb-3">Annual Physical Checkup</p>
-
-          <div class="flex items-center gap-2 text-sm text-gray-500">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
-            Zenith North Clinic • Suite 110
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex flex-col sm:flex-row md:flex-col gap-3 w-full md:w-auto shrink-0 mt-4 md:mt-0">
-          <button class="w-full bg-white border border-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm text-sm">Reschedule</button>
-          <button class="w-full bg-red-50 text-red-600 px-6 py-2.5 rounded-xl font-bold hover:bg-red-100 transition text-sm">Cancel Visit</button>
-        </div>
-
+    } @else if (loadError()) {
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-red-600">
+        {{ loadError() }}
       </div>
+    } @else if (visibleAppointments.length === 0) {
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-gray-500">
+        @if (activeTab === 'upcoming') {
+          No upcoming appointments. Head to Find a Doctor to book one.
+        } @else if (activeTab === 'past') {
+          No past appointments yet.
+        } @else {
+          No canceled or declined appointments.
+        }
+      </div>
+    } @else {
+      <div class="space-y-6">
+        @for (appt of visibleAppointments; track appt.id) {
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 flex flex-col md:flex-row gap-6 lg:gap-8 items-start md:items-center hover:shadow-md transition">
 
-    </div>
+            <!-- Date Block -->
+            <div class="bg-slate-50 rounded-xl p-4 text-center min-w-[100px] border border-gray-100 shrink-0">
+              <div class="text-sm font-bold text-gray-500 uppercase tracking-wider">{{ dateParts(appt.date).month }}</div>
+              <div class="text-3xl font-bold text-gray-900 my-1">{{ dateParts(appt.date).day }}</div>
+              <div class="text-xs font-bold text-gray-400">{{ dateParts(appt.date).weekday }}</div>
+            </div>
+
+            <!-- Doctor & Details -->
+            <div class="flex-1 w-full">
+              <div class="flex items-center gap-3 mb-2">
+                <span [class]="statusClasses(appt.status)">{{ statusLabel(appt.status) }}</span>
+                <span class="text-gray-900 font-bold flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  {{ appt.time }}
+                </span>
+              </div>
+
+              <h3 class="text-2xl font-bold text-gray-900 mb-1">{{ appt.doctorName }}</h3>
+              <p class="text-[#0A3F35] font-medium text-sm mb-3">{{ appt.doctorSpecialty || 'General Practice' }}</p>
+
+              @if (appt.status === 'REJECTED' && appt.rejectionReason) {
+                <div class="flex items-start gap-2 text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">
+                  <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"></path></svg>
+                  {{ appt.rejectionReason }}
+                </div>
+              } @else if (appt.status === 'PENDING') {
+                <div class="flex items-center gap-2 text-sm text-gray-500">
+                  Waiting for the doctor to confirm this request.
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    }
   </div>
 </div>

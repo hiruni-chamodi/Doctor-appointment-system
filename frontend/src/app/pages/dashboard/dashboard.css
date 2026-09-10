@@ -2,6 +2,10 @@
 .dashboard-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
 .dashboard-header h1 { font-size: 32px; font-weight: 700; color: #0d3b2e; margin: 0 0 6px 0; }
 .dashboard-header p { font-size: 15px; color: #6b7570; margin: 0; }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.appointments-btn { position: relative; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: #0d3b2e; color: #ffffff; font-size: 14px; font-weight: 700; cursor: pointer; }
+.appointments-btn svg { width: 18px; height: 18px; }
+.appointments-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #e0483e; color: #ffffff; font-size: 11px; font-weight: 700; }
 .bell-btn { position: relative; width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; color: #3c443f; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .bell-btn svg { width: 22px; height: 22px; }
 .bell-dot { position: absolute; top: 6px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: #e0483e; border: 2px solid #eef1f6; }
@@ -16,13 +20,32 @@
 .stat-change { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #2f8f5b; font-weight: 600; }
 .stat-change svg { width: 15px; height: 15px; }
 .stat-subtext { font-size: 13px; color: #8a938c; }
-.quick-walkin-card { background: #0d3b2e; color: #ffffff; padding: 22px 24px; display: flex; flex-direction: column; justify-content: space-between; }
-.quick-walkin-card h3 { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; margin: 0 0 20px 0; }
+.quick-walkin-card { background: #0d3b2e; color: #ffffff; padding: 22px 24px; display: flex; flex-direction: column; gap: 12px; }
+.quick-walkin-card h3 { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; margin: 0; }
 .quick-walkin-card h3 svg { width: 18px; height: 18px; }
 .quick-walkin-row { display: flex; gap: 10px; }
 .quick-walkin-row input { flex: 1; min-width: 0; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px; padding: 12px 14px; color: #ffffff; font-size: 14px; }
 .quick-walkin-row input::placeholder { color: rgba(255, 255, 255, 0.7); }
 .quick-walkin-row button { background: #9fe0bd; color: #0d3b2e; border: none; border-radius: 10px; padding: 0 20px; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.quick-walkin-row .reminder-caret-btn { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px; width: 40px; padding: 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #ffffff; cursor: pointer; }
+.reminder-caret-btn svg { width: 16px; height: 16px; }
+
+.reminder-suggestions { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; }
+.reminder-suggestion { text-align: left; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 8px; padding: 8px 12px; color: #ffffff; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.reminder-suggestion:hover { background: rgba(255, 255, 255, 0.18); }
+.reminder-hint { font-size: 13px; color: rgba(255, 255, 255, 0.7); margin: 0; }
+.reminder-sent { font-size: 14px; font-weight: 600; color: #9fe0bd; margin: 0; }
+.reminder-selected-chip { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px; padding: 10px 14px; font-size: 14px; font-weight: 700; }
+.reminder-selected-chip button { background: transparent; border: none; color: rgba(255, 255, 255, 0.8); font-size: 18px; line-height: 1; cursor: pointer; padding: 0; }
+.reminder-selected-chip button:hover { color: #ffffff; }
+.reminder-textarea { width: 100%; box-sizing: border-box; resize: none; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px; padding: 10px 12px; color: #ffffff; font-size: 13.5px; font-family: inherit; }
+.reminder-textarea::placeholder { color: rgba(255, 255, 255, 0.6); }
+.reminder-error { font-size: 12.5px; color: #ffb4c0; margin: 0; }
+.reminder-quick-messages { display: flex; flex-wrap: wrap; gap: 6px; }
+.reminder-quick-msg-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 20px; padding: 6px 12px; color: #ffffff; font-size: 12px; font-weight: 600; cursor: pointer; }
+.reminder-quick-msg-btn:hover { background: rgba(255, 255, 255, 0.18); }
+.reminder-secondary-btn { background: #9fe0bd; color: #0d3b2e; border: none; border-radius: 10px; padding: 10px 16px; font-weight: 700; font-size: 13.5px; cursor: pointer; align-self: flex-start; }
+.reminder-secondary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .lower-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
 .trends-card { padding: 24px; }
 .trends-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }

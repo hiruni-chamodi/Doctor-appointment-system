@@ -4,13 +4,26 @@
       <h1>Clinic Overview</h1>
       <p>Good morning, {{ doctorName }}. Here is today's summary.</p>
     </div>
-    <button type="button" class="bell-btn" aria-label="Notifications">
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M6 9a6 6 0 1 1 12 0c0 3.5 1 5 2 6H4c1-1 2-2.5 2-6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
-        <path d="M9.5 18a2.5 2.5 0 0 0 5 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-      </svg>
-      <span class="bell-dot"></span>
-    </button>
+    <div class="header-actions">
+      <button type="button" class="appointments-btn" (click)="openRequestsModal()">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2" />
+          <path d="M3 9h18" stroke="currentColor" stroke-width="2" />
+          <path d="M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        Appointments
+        @if (pendingRequestCount() > 0) {
+          <span class="appointments-badge">{{ pendingRequestCount() }}</span>
+        }
+      </button>
+      <button type="button" class="bell-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 9a6 6 0 1 1 12 0c0 3.5 1 5 2 6H4c1-1 2-2.5 2-6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+          <path d="M9.5 18a2.5 2.5 0 0 0 5 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <span class="bell-dot"></span>
+      </button>
+    </div>
   </header>
 
   <section class="stat-row">
@@ -22,12 +35,12 @@
           <path d="M3 9h18" stroke="currentColor" stroke-width="2" />
         </svg>
       </div>
-      <div class="stat-value">{{ stats.todaysAppointments }}</div>
+      <div class="stat-value">{{ stats().todaysAppointments }}</div>
       <div class="stat-change">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M4 16l6-6 4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        {{ stats.appointmentsChange }}
+        {{ stats().appointmentsChange }}
       </div>
     </div>
 
@@ -47,15 +60,73 @@
 
     <div class="card quick-walkin-card">
       <h3>
-        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13 2 3 14h6l-1 8 11-14h-7l1-6Z" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 9a6 6 0 1 1 12 0c0 3.5 1 5 2 6H4c1-1 2-2.5 2-6Z" stroke-width="1.8" stroke-linejoin="round" />
+          <path d="M9.5 18a2.5 2.5 0 0 0 5 0" stroke-width="1.8" stroke-linecap="round" />
         </svg>
-        Quick Walk-in
+        Send Reminder
       </h3>
-      <div class="quick-walkin-row">
-        <input type="text" placeholder="Patient Name or ID" />
-        <button type="button">Book</button>
-      </div>
+
+      @if (!selectedReminderPatient) {
+        <div class="quick-walkin-row">
+          <input
+            type="text"
+            placeholder="Search or choose a patient"
+            [(ngModel)]="reminderSearchQuery"
+            [ngModelOptions]="{ standalone: true }"
+            (focus)="openReminderDropdown()"
+          />
+          <button type="button" class="reminder-caret-btn" (click)="toggleReminderDropdown()" aria-label="Toggle patient list">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M6 9l6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+        </div>
+        @if (reminderDropdownOpen) {
+          @if (visibleReminderPatients.length > 0) {
+            <div class="reminder-suggestions">
+              @for (patient of visibleReminderPatients; track patient.id) {
+                <button type="button" class="reminder-suggestion" (click)="selectReminderPatient(patient)">
+                  {{ patient.name }}
+                </button>
+              }
+            </div>
+          } @else if (myPatients().length === 0) {
+            <p class="reminder-hint">You don't have any patients yet.</p>
+          } @else {
+            <p class="reminder-hint">No matching patients.</p>
+          }
+        }
+      } @else if (reminderState() === 'sent') {
+        <p class="reminder-sent">Reminder sent to {{ selectedReminderPatient.name }}.</p>
+        <button type="button" class="reminder-secondary-btn" (click)="resetReminderForm()">Send another</button>
+      } @else {
+        <div class="reminder-selected-chip">
+          <span>{{ selectedReminderPatient.name }}</span>
+          <button type="button" (click)="resetReminderForm()" aria-label="Change patient">×</button>
+        </div>
+        <div class="reminder-quick-messages">
+          @for (msg of cannedReminderMessages; track msg) {
+            <button type="button" class="reminder-quick-msg-btn" (click)="useCannedMessage(msg)">{{ msg }}</button>
+          }
+        </div>
+        <textarea
+          class="reminder-textarea"
+          rows="2"
+          placeholder="Reminder message…"
+          [(ngModel)]="reminderMessage"
+          [ngModelOptions]="{ standalone: true }"
+        ></textarea>
+        @if (reminderState() === 'error' && reminderError()) {
+          <p class="reminder-error">{{ reminderError() }}</p>
+        }
+        <button
+          type="button"
+          class="reminder-secondary-btn"
+          [disabled]="!reminderMessage.trim() || reminderState() === 'sending'"
+          (click)="sendReminder()"
+        >
+          {{ reminderState() === 'sending' ? 'Sending…' : 'Send Reminder' }}
+        </button>
+      }
     </div>
   </section>
 
@@ -70,11 +141,13 @@
         </select>
       </div>
       <div class="chart">
-        @for (day of bookingTrends; track day.label) {
+        @for (day of bookingTrends(); track day.label) {
           <div class="chart-bar-wrap">
             <div class="chart-bar" [class.active]="day.active" [style.height.%]="day.percent"></div>
             <span class="chart-label" [class.active]="day.active">{{ day.label }}</span>
           </div>
+        } @empty {
+          <p class="doctor-empty">No booking activity this week yet.</p>
         }
       </div>
     </div>
@@ -101,3 +174,11 @@
     </div>
   </section>
 </div>
+
+@if (isRequestsModalOpen) {
+  <app-appointment-requests-modal
+    [doctorId]="doctorId"
+    (closed)="closeRequestsModal()"
+    (updated)="refreshAppointmentData()"
+  ></app-appointment-requests-modal>
+}

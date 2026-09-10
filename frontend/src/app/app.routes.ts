@@ -3,6 +3,7 @@ import { PatientDashboardComponent } from './patient-dashboard/patient-dashboard
 import { PatientRegistrationComponent } from './patient-registration/patient-registration.component';
 import { Login } from './login/login';
 import { MainLayout } from './layout/main-layout/main-layout';
+import { PatientLayout } from './layout/patient-layout/patient-layout';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { Schedule } from './pages/schedule/schedule';
 import { Patients } from './pages/patients/patients';
@@ -20,11 +21,18 @@ export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'register', component: PatientRegistrationComponent },
   { path: 'help-center', component: HelpCenter },
-  { path: 'patient-dashboard', component: PatientDashboardComponent, canActivate: [patientGuard] },
-  { path: 'find-doctor', component: FindDoctor, canActivate: [patientGuard] },
-  { path: 'my-appointments', component: MyAppointments, canActivate: [patientGuard] },
-  { path: 'medical-records', component: PatientMedicalRecords, canActivate: [patientGuard] },
-  { path: 'profile', component: ProfileSettings, canActivate: [patientGuard] },
+  {
+    path: '',
+    component: PatientLayout,
+    canActivate: [patientGuard],
+    children: [
+      { path: 'patient-dashboard', component: PatientDashboardComponent },
+      { path: 'find-doctor', component: FindDoctor },
+      { path: 'my-appointments', component: MyAppointments },
+      { path: 'medical-records', component: PatientMedicalRecords },
+      { path: 'profile', component: ProfileSettings },
+    ],
+  },
   {
     path: '',
     component: MainLayout,

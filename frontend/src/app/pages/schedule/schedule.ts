@@ -1,15 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
+import { Appointment, AppointmentService } from '../../services/appointment.service';
+import { AuthService } from '../../services/auth.service';
+import { BOOKABLE_TIME_SLOTS } from '../../shared/time-slots';
+import { buildMonthGrid, CalendarCell, stripTime, toIsoDate } from '../../shared/calendar-grid';
 
-interface CalendarDay {
-  day: number;
-  currentMonth: boolean;
-  selected?: boolean;
-}
+type ViewMode = 'Day' | 'Week' | 'Month';
 
 interface WeekDay {
   label: string;
   date: number;
-  active?: boolean;
+  iso: string;
+  active: boolean;
 }
 
 interface OverviewStat {
@@ -18,14 +19,11 @@ interface OverviewStat {
   color: string;
 }
 
-interface Appointment {
-  day: string;
-  rowStart: number;
-  rowSpan: number;
-  patient: string;
-  status: 'confirmed' | 'pending' | 'cancelled';
-  statusLabel?: string;
-}
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 @Component({
   selector: 'app-schedule',
@@ -33,90 +31,205 @@ interface Appointment {
   templateUrl: './schedule.html',
   styleUrl: './schedule.css',
 })
-export class Schedule {
-  protected readonly viewModes = ['Day', 'Week', 'Month'];
-  protected activeView = 'Week';
+export class Schedule implements OnInit {
+  protected readonly viewModes: ViewMode[] = ['Day', 'Week', 'Month'];
+  protected activeView: ViewMode = 'Week';
 
-  protected readonly monthLabel = 'October 2023';
   protected readonly weekdayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  protected readonly timeSlots = BOOKABLE_TIME_SLOTS;
 
-  protected readonly calendarWeeks: CalendarDay[][] = [
-    [
-      { day: 29, currentMonth: false },
-      { day: 30, currentMonth: false },
-      { day: 1, currentMonth: true },
-      { day: 2, currentMonth: true },
-      { day: 3, currentMonth: true },
-      { day: 4, currentMonth: true },
-      { day: 5, currentMonth: true },
-    ],
-    [
-      { day: 6, currentMonth: true },
-      { day: 7, currentMonth: true },
-      { day: 8, currentMonth: true },
-      { day: 9, currentMonth: true },
-      { day: 10, currentMonth: true },
-      { day: 11, currentMonth: true },
-      { day: 12, currentMonth: true },
-    ],
-    [
-      { day: 13, currentMonth: true },
-      { day: 14, currentMonth: true },
-      { day: 15, currentMonth: true },
-      { day: 16, currentMonth: true },
-      { day: 17, currentMonth: true },
-      { day: 18, currentMonth: true },
-      { day: 19, currentMonth: true },
-    ],
-    [
-      { day: 20, currentMonth: true },
-      { day: 21, currentMonth: true },
-      { day: 22, currentMonth: true },
-      { day: 23, currentMonth: true },
-      { day: 24, currentMonth: true, selected: true },
-      { day: 25, currentMonth: true },
-      { day: 26, currentMonth: true },
-    ],
-    [
-      { day: 27, currentMonth: true },
-      { day: 28, currentMonth: true },
-      { day: 29, currentMonth: true },
-      { day: 30, currentMonth: true },
-      { day: 31, currentMonth: true },
-      { day: 1, currentMonth: false },
-      { day: 2, currentMonth: false },
-    ],
-  ];
+  protected weekDays: WeekDay[] = [];
+  protected weekRangeLabel = '';
+  protected dayLabel = '';
+  protected monthLabel = '';
+  protected calendarWeeks: CalendarCell[][] = [];
 
-  protected readonly overviewStats: OverviewStat[] = [
-    { label: 'Confirmed', value: 8, color: '#7fd8a6' },
-    { label: 'Pending', value: 2, color: '#6b3f1d' },
-    { label: 'Cancellations', value: 1, color: '#f5b8c4' },
-  ];
+  // Loaded from an HttpClient subscribe callback, so this is a signal — this app runs
+  // zoneless, and a plain field mutated outside a template-bound event handler won't
+  // schedule a re-render.
+  protected readonly appointments = signal<Appointment[]>([]);
+  protected readonly isLoading = signal(true);
+  protected readonly loadError = signal('');
 
-  protected readonly weekDays: WeekDay[] = [
-    { label: 'Mon', date: 24 },
-    { label: 'Tue', date: 25, active: true },
-    { label: 'Wed', date: 26 },
-    { label: 'Thu', date: 27 },
-    { label: 'Fri', date: 28 },
-    { label: 'Sat', date: 29 },
-    { label: 'Sun', date: 30 },
-  ];
+  private readonly today = stripTime(new Date());
+  private anchorDate = this.today;
 
-  protected readonly timeSlots = ['09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM'];
+  constructor(
+    private appointmentService: AppointmentService,
+    private authService: AuthService,
+  ) {}
 
-  protected readonly appointments: Appointment[] = [
-    { day: 'Mon', rowStart: 0, rowSpan: 2, patient: 'Sarah J...', status: 'confirmed', statusLabel: 'Confirmed' },
-    { day: 'Tue', rowStart: 1, rowSpan: 1, patient: 'Marcus ...', status: 'pending', statusLabel: 'Pending' },
-    { day: 'Wed', rowStart: 2, rowSpan: 1, patient: 'Emily Che', status: 'cancelled' },
-  ];
+  ngOnInit(): void {
+    this.recompute();
 
-  protected setView(view: string): void {
+    const doctor = this.authService.getCurrentUser();
+    if (!doctor) {
+      this.isLoading.set(false);
+      this.loadError.set('You must be signed in to view your schedule.');
+      return;
+    }
+
+    this.appointmentService.getForDoctor(doctor.id).subscribe({
+      next: (appointments) => {
+        this.appointments.set(appointments);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.loadError.set('Unable to load your schedule right now.');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  protected setView(view: ViewMode): void {
     this.activeView = view;
   }
 
-  protected dayColumn(day: string): number {
-    return this.weekDays.findIndex((weekDay) => weekDay.label === day) + 2;
+  protected get anchorIso(): string {
+    return toIsoDate(this.anchorDate);
+  }
+
+  protected get periodLabel(): string {
+    if (this.activeView === 'Day') return this.dayLabel;
+    if (this.activeView === 'Month') return this.monthLabel;
+    return this.weekRangeLabel;
+  }
+
+  protected goToday(): void {
+    this.anchorDate = this.today;
+    this.recompute();
+  }
+
+  protected goPrev(): void {
+    this.shiftAnchor(-1);
+  }
+
+  protected goNext(): void {
+    this.shiftAnchor(1);
+  }
+
+  /** Jump the current view to the clicked date, from the sidebar mini calendar. */
+  protected selectMiniDay(cell: CalendarCell): void {
+    if (!cell.date) {
+      return;
+    }
+    this.anchorDate = cell.date;
+    this.recompute();
+  }
+
+  /** Drill from the month grid into a single day. */
+  protected selectMonthDay(cell: CalendarCell): void {
+    if (!cell.date) {
+      return;
+    }
+    this.anchorDate = cell.date;
+    this.activeView = 'Day';
+    this.recompute();
+  }
+
+  /** This week's confirmed/pending appointments that land on one of the fixed bookable time slots. */
+  protected get weekAppointments(): Appointment[] {
+    const isoDays = new Set(this.weekDays.map((d) => d.iso));
+    return this.appointments().filter(
+      (a) => a.status !== 'REJECTED' && isoDays.has(a.date) && this.timeSlots.includes(a.time),
+    );
+  }
+
+  protected appointmentAt(iso: string, time: string): Appointment | undefined {
+    return this.appointments().find((a) => a.status !== 'REJECTED' && a.date === iso && a.time === time);
+  }
+
+  protected isoOf(cell: CalendarCell): string {
+    return cell.date ? toIsoDate(cell.date) : '';
+  }
+
+  protected appointmentsOn(iso: string): Appointment[] {
+    return this.appointments()
+      .filter((a) => a.status !== 'REJECTED' && a.date === iso)
+      .sort((a, b) => this.timeSlots.indexOf(a.time) - this.timeSlots.indexOf(b.time));
+  }
+
+  protected get overviewStats(): OverviewStat[] {
+    const isoDays = new Set(this.weekDays.map((d) => d.iso));
+    const week = this.appointments().filter((a) => isoDays.has(a.date));
+    return [
+      { label: 'Confirmed', value: week.filter((a) => a.status === 'CONFIRMED').length, color: '#7fd8a6' },
+      { label: 'Pending', value: week.filter((a) => a.status === 'PENDING').length, color: '#6b3f1d' },
+      { label: 'Declined', value: week.filter((a) => a.status === 'REJECTED').length, color: '#f5b8c4' },
+    ];
+  }
+
+  protected dayColumn(iso: string): number {
+    return this.weekDays.findIndex((d) => d.iso === iso) + 2;
+  }
+
+  protected rowForTime(time: string): number {
+    return this.timeSlots.indexOf(time);
+  }
+
+  private shiftAnchor(direction: number): void {
+    const next = new Date(this.anchorDate);
+    if (this.activeView === 'Day') {
+      next.setDate(next.getDate() + direction);
+    } else if (this.activeView === 'Week') {
+      next.setDate(next.getDate() + direction * 7);
+    } else {
+      next.setMonth(next.getMonth() + direction);
+    }
+    this.anchorDate = stripTime(next);
+    this.recompute();
+  }
+
+  private recompute(): void {
+    this.buildDay();
+    this.buildWeek();
+    this.buildMonth();
+  }
+
+  private startOfWeek(date: Date): Date {
+    const start = new Date(date);
+    start.setDate(start.getDate() - start.getDay());
+    return start;
+  }
+
+  private buildDay(): void {
+    this.dayLabel = this.anchorDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
+  }
+
+  private buildWeek(): void {
+    const weekStart = this.startOfWeek(this.anchorDate);
+    this.weekDays = WEEKDAY_LABELS.map((label, i) => {
+      const date = new Date(weekStart);
+      date.setDate(date.getDate() + i);
+      return {
+        label,
+        date: date.getDate(),
+        iso: toIsoDate(date),
+        active: date.getTime() === this.today.getTime(),
+      };
+    });
+
+    const endDate = new Date(weekStart);
+    endDate.setDate(endDate.getDate() + 6);
+    const startLabel = `${MONTH_NAMES[weekStart.getMonth()]} ${weekStart.getDate()}`;
+    const endLabel =
+      endDate.getMonth() === weekStart.getMonth()
+        ? `${endDate.getDate()}`
+        : `${MONTH_NAMES[endDate.getMonth()]} ${endDate.getDate()}`;
+    this.weekRangeLabel = `${startLabel} - ${endLabel}`;
+  }
+
+  private buildMonth(): void {
+    this.monthLabel = `${MONTH_NAMES[this.anchorDate.getMonth()]} ${this.anchorDate.getFullYear()}`;
+    this.calendarWeeks = buildMonthGrid(
+      this.anchorDate.getFullYear(),
+      this.anchorDate.getMonth(),
+      this.anchorDate,
+      this.today,
+    );
   }
 }

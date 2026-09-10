@@ -1,0 +1,11 @@
+<div class="layout-shell">
+  <app-sidebar
+    [profileName]="profileName"
+    [profileRole]="profileRole"
+    [primaryActionLabel]="primaryActionLabel"
+    [navItems]="navItems"
+  ></app-sidebar>
+  <div class="layout-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

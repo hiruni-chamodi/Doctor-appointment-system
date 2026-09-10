@@ -33,15 +33,16 @@
 
     <div class="card stat-card stat-peach">
       <div class="stat-card-top">
-        <span>Walk-ins Available</span>
+        <span>Total Patients</span>
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="13" cy="4" r="1.6" fill="currentColor" />
-          <path d="M10 21l1.5-6-2-2 .8-5 3 1 2 3h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M9.5 13l-3 1.5-1.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="8.5" cy="8" r="3" stroke="currentColor" stroke-width="2" />
+          <circle cx="16.5" cy="9" r="2.4" stroke="currentColor" stroke-width="2" />
+          <path d="M2.5 20c0-3.038 2.686-5.5 6-5.5s6 2.462 6 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          <path d="M15 15.2c2.5.4 4 2.1 4 4.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
         </svg>
       </div>
-      <div class="stat-value">{{ stats.walkInsAvailable }}</div>
-      <div class="stat-subtext">Slots remaining today</div>
+      <div class="stat-value">{{ totalPatients() ?? '—' }}</div>
+      <div class="stat-subtext">Registered in the system</div>
     </div>
 
     <div class="card quick-walkin-card">
@@ -84,7 +85,7 @@
         <button type="button" class="add-doctor-btn" aria-label="Add doctor">+</button>
       </div>
       <div class="doctor-list">
-        @for (doc of doctors; track doc.name) {
+        @for (doc of doctors(); track doc.name) {
           <div class="doctor-row">
             <div class="doctor-avatar">{{ doc.initials }}</div>
             <div>
@@ -92,6 +93,8 @@
               <div class="doctor-specialty">{{ doc.specialty }}</div>
             </div>
           </div>
+        } @empty {
+          <p class="doctor-empty">No doctors registered yet.</p>
         }
       </div>
       <a class="view-all-link">View All Staff</a>

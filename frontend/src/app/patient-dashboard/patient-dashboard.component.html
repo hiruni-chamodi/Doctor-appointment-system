@@ -127,7 +127,7 @@
               <p class="text-sm text-gray-500">Cardiologist</p>
             </div>
           </div>
-          <button class="bg-[#0A3F35] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-900 transition duration-200">Book</button>
+          <button (click)="openBookingModal('Dr. Sarah Jenkins', 'Cardiologist')" class="bg-[#0A3F35] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-900 transition duration-200">Book</button>
         </div>
 
         <!-- Divider Line -->
@@ -145,7 +145,7 @@
               <p class="text-sm text-gray-500">Primary Care</p>
             </div>
           </div>
-          <button class="bg-[#0A3F35] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-900 transition duration-200">Book</button>
+          <button (click)="openBookingModal('Dr. Marcus Vance', 'Primary Care')" class="bg-[#0A3F35] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-900 transition duration-200">Book</button>
         </div>
 
       </div>
@@ -206,4 +206,11 @@
   </div>
 
   </div>
+  @if (isBookingModalOpen) {
+    <app-booking-modal
+      [doctorName]="selectedDoctorName"
+      [doctorRole]="selectedDoctorRole"
+      (closed)="closeBookingModal()"
+    ></app-booking-modal>
+  }
 </div>

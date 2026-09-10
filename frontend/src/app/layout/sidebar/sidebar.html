@@ -12,7 +12,7 @@
     </div>
   </div>
 
-  <button type="button" class="new-appointment-btn">{{ primaryActionLabel }}</button>
+  <a routerLink="/find-doctor" class="new-appointment-btn">{{ primaryActionLabel }}</a>
 
   <nav class="nav-list">
     @for (item of navItems; track item.label) {

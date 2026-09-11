@@ -1,95 +1,131 @@
-<!-- Top Navigation -->
-<header class="bg-surface shadow-sm h-20 flex items-center px-8 max-w-7xl mx-auto justify-between sticky top-0 z-50">
-  <div class="text-[24px] font-bold text-primary">
-    Zenith Medical
+<div class="min-h-screen relative flex items-center justify-center font-sans p-6 lg:p-10 overflow-hidden bg-[#0A3F35]">
+
+  <!-- Background Photo (blurred) -->
+  <img
+    src="/image.png"
+    alt=""
+    class="absolute inset-0 w-full h-full object-cover scale-110 blur-sm"
+  />
+  <div class="absolute inset-0 bg-gradient-to-br from-[#0A3F35]/70 via-[#0A3F35]/55 to-emerald-900/50"></div>
+
+  <!-- Decorative Crosses -->
+  <div class="pointer-events-none absolute inset-0 overflow-hidden text-white">
+    <svg class="absolute -top-6 left-10 w-24 h-24 opacity-10 rotate-6" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2h6v5h5v6h-5v9H9v-9H2V7h7V2Z" /></svg>
+    <svg class="absolute top-1/3 left-4 w-12 h-12 opacity-10 -rotate-12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2h6v5h5v6h-5v9H9v-9H2V7h7V2Z" /></svg>
+    <svg class="absolute top-10 right-16 w-16 h-16 opacity-10 rotate-12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2h6v5h5v6h-5v9H9v-9H2V7h7V2Z" /></svg>
+    <svg class="absolute bottom-16 right-8 w-28 h-28 opacity-10 -rotate-6" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2h6v5h5v6h-5v9H9v-9H2V7h7V2Z" /></svg>
+    <svg class="absolute bottom-10 left-1/4 w-10 h-10 opacity-10 rotate-3" viewBox="0 0 24 24" fill="currentColor"><path d="M9 2h6v5h5v6h-5v9H9v-9H2V7h7V2Z" /></svg>
   </div>
-  <a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2" routerLink="/login">
-    <span class="material-symbols-outlined">close</span>
-    <span class="font-medium text-sm">Cancel</span>
+
+  <!-- Cancel (top-right) -->
+  <a routerLink="/login" class="absolute top-8 right-8 lg:top-12 lg:right-12 z-20 text-white/80 hover:text-white transition flex items-center gap-2 text-sm font-medium">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+    Cancel
   </a>
-</header>
 
-<main class="max-w-3xl mx-auto px-4 md:px-8 py-16">
-  <!-- Header -->
-  <div class="text-center mb-12">
-    <h1 class="text-3xl font-bold text-primary mb-4">Create Your Account</h1>
-    <p class="text-lg text-on-surface-variant">Welcome to Zenith Medical. Let's get you set up.</p>
-  </div>
+  <!-- Main Card -->
+  <div class="relative z-20 w-full max-w-2xl">
+    <div class="relative rounded-3xl border border-white/40 shadow-2xl bg-white/40 backdrop-blur-2xl backdrop-saturate-150 p-8 sm:p-10 max-h-[85vh] overflow-y-auto">
+      <div class="pointer-events-none absolute inset-x-0 top-0 h-28 rounded-t-3xl bg-gradient-to-b from-white/60 to-transparent"></div>
 
-  <!-- Form Container -->
-  <div class="glass-card rounded-[16px] p-8 md:p-12">
-    <form>
-      <h2 class="text-2xl font-semibold text-primary mb-6 border-b border-surface-variant pb-4">Account Type</h2>
-
-      <div class="grid grid-cols-2 gap-4 mb-8">
-        <button
-          type="button"
-          (click)="role = 'PATIENT'"
-          class="px-4 py-3 rounded-lg font-medium border transition-colors"
-          [class.bg-primary]="role === 'PATIENT'"
-          [class.text-white]="role === 'PATIENT'"
-          [class.border-primary]="role === 'PATIENT'"
-          [class.border-outline-variant]="role !== 'PATIENT'"
-          [class.text-on-surface]="role !== 'PATIENT'"
-        >
-          I'm a Patient
-        </button>
-        <button
-          type="button"
-          (click)="role = 'DOCTOR'"
-          class="px-4 py-3 rounded-lg font-medium border transition-colors"
-          [class.bg-primary]="role === 'DOCTOR'"
-          [class.text-white]="role === 'DOCTOR'"
-          [class.border-primary]="role === 'DOCTOR'"
-          [class.border-outline-variant]="role !== 'DOCTOR'"
-          [class.text-on-surface]="role !== 'DOCTOR'"
-        >
-          I'm a Doctor
-        </button>
+      <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-[#0A3F35] mb-1">Create Your Account</h1>
+        <p class="text-sm text-gray-700">Welcome to Zenith Medical. Let's get you set up.</p>
       </div>
 
-      <h2 class="text-2xl font-semibold text-primary mb-6 border-b border-surface-variant pb-4">Personal Information</h2>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <form class="space-y-6">
         <div>
-          <label class="block font-medium text-sm text-on-surface mb-2" for="firstName">First Name</label>
-          <input [(ngModel)]="firstName" name="firstName" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-on-surface" id="firstName" placeholder="Jane" type="text"/>
-        </div>
-
-        <div>
-          <label class="block font-medium text-sm text-on-surface mb-2" for="lastName">Last Name</label>
-          <input [(ngModel)]="lastName" name="lastName" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-on-surface" id="lastName" placeholder="Doe" type="text"/>
-        </div>
-
-        <div class="md:col-span-2">
-          <label class="block font-medium text-sm text-on-surface mb-2" for="email">Email Address</label>
-          <input [(ngModel)]="email" name="email" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-on-surface" id="email" placeholder="jane.doe@example.com" type="email"/>
-        </div>
-
-        <div class="md:col-span-2">
-          <label class="block font-medium text-sm text-on-surface mb-2" for="password">Password</label>
-          <input [(ngModel)]="password" name="password" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-on-surface" id="password" placeholder="••••••••" type="password"/>
-        </div>
-
-        @if (role === 'DOCTOR') {
-          <div class="md:col-span-2">
-            <label class="block font-medium text-sm text-on-surface mb-2" for="specialty">Specialty</label>
-            <input [(ngModel)]="specialty" name="specialty" class="w-full bg-white border border-outline-variant rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-on-surface" id="specialty" placeholder="Cardiology" type="text"/>
+          <p class="text-xs font-semibold text-gray-700 mb-2">Account Type</p>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" (click)="role = 'PATIENT'" [class]="roleButtonClasses('PATIENT')">I'm a Patient</button>
+            <button type="button" (click)="role = 'DOCTOR'" [class]="roleButtonClasses('DOCTOR')">I'm a Doctor</button>
           </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1.5" for="firstName">First Name</label>
+            <input
+              [(ngModel)]="firstName"
+              name="firstName"
+              id="firstName"
+              type="text"
+              placeholder="Jane"
+              class="w-full bg-white/60 border border-white/70 backdrop-blur-sm rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0A3F35] focus:border-transparent transition"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1.5" for="lastName">Last Name</label>
+            <input
+              [(ngModel)]="lastName"
+              name="lastName"
+              id="lastName"
+              type="text"
+              placeholder="Doe"
+              class="w-full bg-white/60 border border-white/70 backdrop-blur-sm rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0A3F35] focus:border-transparent transition"
+            />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-gray-700 mb-1.5" for="email">Email Address</label>
+            <input
+              [(ngModel)]="email"
+              name="email"
+              id="email"
+              type="email"
+              placeholder="jane.doe@example.com"
+              class="w-full bg-white/60 border border-white/70 backdrop-blur-sm rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0A3F35] focus:border-transparent transition"
+            />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-gray-700 mb-1.5" for="password">Password</label>
+            <input
+              [(ngModel)]="password"
+              name="password"
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              class="w-full bg-white/60 border border-white/70 backdrop-blur-sm rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0A3F35] focus:border-transparent transition"
+            />
+          </div>
+
+          @if (role === 'DOCTOR') {
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-gray-700 mb-1.5" for="specialty">Specialty</label>
+              <input
+                [(ngModel)]="specialty"
+                name="specialty"
+                id="specialty"
+                type="text"
+                placeholder="Cardiology"
+                class="w-full bg-white/60 border border-white/70 backdrop-blur-sm rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0A3F35] focus:border-transparent transition"
+              />
+            </div>
+          }
+        </div>
+
+        @if (errorMessage) {
+          <p class="text-red-600 text-xs font-semibold">{{ errorMessage }}</p>
         }
-      </div>
 
-      @if (errorMessage) {
-        <p class="text-red-600 text-sm font-medium mb-6">{{ errorMessage }}</p>
-      }
-
-      <!-- Actions -->
-      <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-surface-variant">
-        <button (click)="submitRegistration()" [disabled]="isSubmitting" class="px-8 py-3 rounded-lg font-medium text-white bg-primary hover:bg-opacity-90 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-60" type="button">
-          {{ isSubmitting ? 'Creating Account...' : 'Submit Registration' }}
-          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        <button
+          (click)="submitRegistration()"
+          [disabled]="isSubmitting"
+          type="button"
+          class="w-full px-6 py-2.5 rounded-lg font-semibold text-white bg-[#0A3F35] hover:bg-emerald-900 transition shadow-sm flex items-center justify-center gap-2 disabled:opacity-60"
+        >
+          {{ isSubmitting ? 'Creating Account…' : 'Submit Registration' }}
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
         </button>
-      </div>
-    </form>
+
+        <p class="text-center text-xs text-gray-700">
+          Already have an account?
+          <a routerLink="/login" class="font-semibold text-[#0A3F35] hover:underline">Sign in</a>
+        </p>
+      </form>
+    </div>
   </div>
-</main>
+
+</div>

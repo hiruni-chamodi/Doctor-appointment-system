@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-slate-50 p-8 lg:p-12 font-sans">
+<div class="min-h-screen bg-[#eaf3ee] p-8 lg:p-12 font-sans">
 
   <div class="max-w-5xl mx-auto">
     <!-- Header -->
@@ -24,15 +24,15 @@
 
     <!-- Appointments List -->
     @if (isLoading()) {
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-gray-500">
+      <div class="bg-white/65 backdrop-blur-md backdrop-saturate-150 rounded-2xl shadow-lg border border-white/60 p-12 text-center text-gray-500">
         Loading your appointments…
       </div>
     } @else if (loadError()) {
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-red-600">
+      <div class="bg-white/65 backdrop-blur-md backdrop-saturate-150 rounded-2xl shadow-lg border border-white/60 p-12 text-center text-red-600">
         {{ loadError() }}
       </div>
     } @else if (visibleAppointments.length === 0) {
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center text-gray-500">
+      <div class="bg-white/65 backdrop-blur-md backdrop-saturate-150 rounded-2xl shadow-lg border border-white/60 p-12 text-center text-gray-500">
         @if (activeTab === 'upcoming') {
           No upcoming appointments. Head to Find a Doctor to book one.
         } @else if (activeTab === 'past') {
@@ -44,7 +44,7 @@
     } @else {
       <div class="space-y-6">
         @for (appt of visibleAppointments; track appt.id) {
-          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 flex flex-col md:flex-row gap-6 lg:gap-8 items-start md:items-center hover:shadow-md transition">
+          <div class="bg-white/65 backdrop-blur-md backdrop-saturate-150 rounded-2xl shadow-lg border border-white/60 p-6 sm:p-8 flex flex-col md:flex-row gap-6 lg:gap-8 items-start md:items-center hover:shadow-md transition">
 
             <!-- Date Block -->
             <div class="bg-slate-50 rounded-xl p-4 text-center min-w-[100px] border border-gray-100 shrink-0">

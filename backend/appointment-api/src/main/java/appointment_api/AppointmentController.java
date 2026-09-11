@@ -90,7 +90,7 @@ public class AppointmentController {
     public List<String> getUnavailableTimes(@PathVariable String doctorId, @RequestParam String date) {
         return appointmentRepository.findByDoctorIdAndDateAndStatusIn(doctorId, date, SLOT_HOLDING_STATUSES)
                 .stream()
-                .map(Appointment::getTime)
+                .map(appointment -> appointment.getTime())
                 .toList();
     }
 

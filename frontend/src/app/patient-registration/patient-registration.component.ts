@@ -56,6 +56,13 @@ export class PatientRegistrationComponent {
       });
   }
 
+  protected roleButtonClasses(target: UserRole): string {
+    const base = 'px-4 py-2.5 rounded-lg font-semibold text-sm border backdrop-blur-sm transition';
+    return this.role === target
+      ? `${base} bg-[#0A3F35] text-white border-[#0A3F35]`
+      : `${base} bg-white/50 text-gray-700 border-white/70 hover:border-[#0A3F35]`;
+  }
+
   private resetForm() {
     this.firstName = '';
     this.lastName = '';

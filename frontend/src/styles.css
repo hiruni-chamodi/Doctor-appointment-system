@@ -1,1 +1,11 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Hide scrollbars everywhere (page and any internal scrollable panel) while keeping
+   scrolling itself working via wheel, touch, and keyboard. */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, modern Edge */
+}

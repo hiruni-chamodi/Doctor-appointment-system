@@ -40,9 +40,9 @@ export const routes: Routes = [
     component: MainLayout,
     children: [
       { path: 'dashboard', component: Dashboard, canActivate: [doctorGuard] },
-      { path: 'schedule', component: Schedule },
-      { path: 'patients', component: Patients },
-      { path: 'records', component: MedicalRecords },
+      { path: 'schedule', component: Schedule, canActivate: [doctorGuard] },
+      { path: 'patients', component: Patients, canActivate: [doctorGuard] },
+      { path: 'records', component: MedicalRecords, canActivate: [doctorGuard] },
       { path: 'settings', component: Settings },
       { path: 'receptionist-dashboard', component: ReceptionistDashboard },
       { path: 'admin-dashboard', component: AdminDashboard, canActivate: [adminGuard] },

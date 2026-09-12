@@ -1,6 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { Appointment, AppointmentService } from '../../services/appointment.service';
 import { AuthService } from '../../services/auth.service';
+import { ScheduleViewStateService } from '../../services/schedule-view-state.service';
 import { BOOKABLE_TIME_SLOTS } from '../../shared/time-slots';
 import { buildMonthGrid, CalendarCell, stripTime, toIsoDate } from '../../shared/calendar-grid';
 
@@ -33,7 +35,7 @@ const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 })
 export class Schedule implements OnInit {
   protected readonly viewModes: ViewMode[] = ['Day', 'Week', 'Month'];
-  protected activeView: ViewMode = 'Week';
+  protected activeView: ViewMode;
 
   protected readonly weekdayHeaders = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   protected readonly timeSlots = BOOKABLE_TIME_SLOTS;
@@ -52,12 +54,21 @@ export class Schedule implements OnInit {
   protected readonly loadError = signal('');
 
   private readonly today = stripTime(new Date());
-  private anchorDate = this.today;
+  private anchorDate: Date;
 
   constructor(
     private appointmentService: AppointmentService,
     private authService: AuthService,
-  ) {}
+    private router: Router,
+    private viewState: ScheduleViewStateService,
+  ) {
+    // Restore whichever date/view the doctor last had open (see ScheduleViewStateService) —
+    // this component gets torn down and rebuilt every time they navigate away and back
+    // (e.g. to add a medical record), so without this it would silently snap back to
+    // today's Week view and make other appointments look like they'd disappeared.
+    this.activeView = this.viewState.activeView;
+    this.anchorDate = this.viewState.anchorIso ? stripTime(new Date(this.viewState.anchorIso)) : this.today;
+  }
 
   ngOnInit(): void {
     this.recompute();
@@ -83,6 +94,7 @@ export class Schedule implements OnInit {
 
   protected setView(view: ViewMode): void {
     this.activeView = view;
+    this.viewState.activeView = view;
   }
 
   protected get anchorIso(): string {
@@ -96,7 +108,7 @@ export class Schedule implements OnInit {
   }
 
   protected goToday(): void {
-    this.anchorDate = this.today;
+    this.setAnchor(this.today);
     this.recompute();
   }
 
@@ -113,7 +125,7 @@ export class Schedule implements OnInit {
     if (!cell.date) {
       return;
     }
-    this.anchorDate = cell.date;
+    this.setAnchor(cell.date);
     this.recompute();
   }
 
@@ -122,8 +134,9 @@ export class Schedule implements OnInit {
     if (!cell.date) {
       return;
     }
-    this.anchorDate = cell.date;
+    this.setAnchor(cell.date);
     this.activeView = 'Day';
+    this.viewState.activeView = 'Day';
     this.recompute();
   }
 
@@ -167,6 +180,14 @@ export class Schedule implements OnInit {
     return this.timeSlots.indexOf(time);
   }
 
+  /** Jump to the Medical Records page with this appointment's patient pre-selected, ready for the doctor to add a report. */
+  protected addRecordFor(appt: Appointment, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/records'], {
+      queryParams: { patientId: appt.patientId, patientName: appt.patientName },
+    });
+  }
+
   private shiftAnchor(direction: number): void {
     const next = new Date(this.anchorDate);
     if (this.activeView === 'Day') {
@@ -176,8 +197,13 @@ export class Schedule implements OnInit {
     } else {
       next.setMonth(next.getMonth() + direction);
     }
-    this.anchorDate = stripTime(next);
+    this.setAnchor(stripTime(next));
     this.recompute();
+  }
+
+  private setAnchor(date: Date): void {
+    this.anchorDate = date;
+    this.viewState.anchorIso = toIsoDate(date);
   }
 
   private recompute(): void {

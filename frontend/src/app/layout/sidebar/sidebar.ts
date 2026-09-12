@@ -20,6 +20,7 @@ export class Sidebar {
   @Input() profileRole = 'Cardiologist';
   @Input() primaryActionLabel = 'New Appointment';
   @Input() showPrimaryAction = true;
+  @Input() adminStyle = false;
 
   @Input() navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },

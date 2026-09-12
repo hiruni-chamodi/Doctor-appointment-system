@@ -34,6 +34,10 @@ export class Login {
         this.isSubmitting = false;
         if (user.role === 'DOCTOR') {
           this.router.navigate(['/dashboard']);
+        } else if (user.role === 'RECEPTIONIST') {
+          this.router.navigate(['/receptionist-dashboard']);
+        } else if (user.role === 'ADMIN') {
+          this.router.navigate(['/admin-dashboard']);
         } else {
           this.router.navigate(['/patient-dashboard']);
         }

@@ -66,7 +66,12 @@ export class HelpCenter {
 
   constructor(private authService: AuthService) {
     this.currentUser = this.authService.getCurrentUser();
-    this.dashboardPath = this.currentUser?.role === 'DOCTOR' ? '/dashboard' : '/patient-dashboard';
+    this.dashboardPath =
+      this.currentUser?.role === 'DOCTOR' || this.currentUser?.role === 'ADMIN'
+        ? '/dashboard'
+        : this.currentUser?.role === 'RECEPTIONIST'
+          ? '/receptionist-dashboard'
+          : '/patient-dashboard';
   }
 
   toggleFaq(index: number): void {

@@ -59,15 +59,19 @@ export class MyAppointments implements OnInit {
   }
 
   protected get upcoming(): Appointment[] {
-    return this.appointments().filter((a) => a.status !== 'REJECTED' && a.date >= this.todayIso);
+    return this.appointments().filter(
+      (a) => a.status !== 'REJECTED' && a.status !== 'CANCELED' && a.date >= this.todayIso,
+    );
   }
 
   protected get past(): Appointment[] {
-    return this.appointments().filter((a) => a.status !== 'REJECTED' && a.date < this.todayIso);
+    return this.appointments().filter(
+      (a) => a.status !== 'REJECTED' && a.status !== 'CANCELED' && a.date < this.todayIso,
+    );
   }
 
   protected get canceled(): Appointment[] {
-    return this.appointments().filter((a) => a.status === 'REJECTED');
+    return this.appointments().filter((a) => a.status === 'REJECTED' || a.status === 'CANCELED');
   }
 
   protected get visibleAppointments(): Appointment[] {
@@ -91,14 +95,34 @@ export class MyAppointments implements OnInit {
   protected statusLabel(status: Appointment['status']): string {
     if (status === 'CONFIRMED') return 'Confirmed';
     if (status === 'REJECTED') return 'Declined';
+    if (status === 'CANCELED') return 'Canceled';
     return 'Pending';
   }
 
   protected statusClasses(status: Appointment['status']): string {
     const base = 'px-3 py-1 rounded-full text-xs font-bold tracking-wide';
     if (status === 'CONFIRMED') return `${base} bg-emerald-100 text-emerald-800`;
-    if (status === 'REJECTED') return `${base} bg-red-100 text-red-700`;
+    if (status === 'REJECTED' || status === 'CANCELED') return `${base} bg-red-100 text-red-700`;
     return `${base} bg-orange-100 text-orange-800`;
+  }
+
+  protected cancelAppointment(appointmentId: string): void {
+    if (!confirm('Are you sure you want to cancel this appointment?')) {
+      return;
+    }
+
+    this.appointmentService.cancel(appointmentId).subscribe({
+      next: (updatedAppointment) => {
+        this.appointments.update((appointments) =>
+          appointments.map((appointment) =>
+            appointment.id === updatedAppointment.id ? updatedAppointment : appointment,
+          ),
+        );
+      },
+      error: () => {
+        this.loadError.set('Unable to cancel this appointment right now.');
+      },
+    });
   }
 
   private toIsoDate(date: Date): string {

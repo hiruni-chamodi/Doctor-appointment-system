@@ -10,11 +10,13 @@ import { Patients } from './pages/patients/patients';
 import { MedicalRecords } from './pages/medical-records/medical-records';
 import { Settings } from './pages/settings/settings';
 import { HelpCenter } from './pages/help-center/help-center';
-import { doctorGuard, patientGuard } from './guards/auth.guard';
+import { adminGuard, doctorGuard, patientGuard } from './guards/auth.guard';
 import { FindDoctor } from './find-doctor/find-doctor';
 import { MyAppointments } from './my-appointments/my-appointments';
 import { PatientMedicalRecords } from './patient-medical-records/patient-medical-records';
 import { ProfileSettings } from './profile-settings/profile-settings';
+import { ReceptionistDashboard } from './receptionist-dashboard/receptionist-dashboard';
+import { AdminDashboard } from './admin-dashboard/admin-dashboard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -42,6 +44,8 @@ export const routes: Routes = [
       { path: 'patients', component: Patients },
       { path: 'records', component: MedicalRecords },
       { path: 'settings', component: Settings },
+      { path: 'receptionist-dashboard', component: ReceptionistDashboard },
+      { path: 'admin-dashboard', component: AdminDashboard, canActivate: [adminGuard] },
     ],
   },
 ];

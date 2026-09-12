@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
+export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'CANCELED';
 
 export interface Appointment {
   id: string;
@@ -39,6 +39,10 @@ export class AppointmentService {
     return this.http.get<Appointment[]>(`${APPOINTMENTS_API_URL}/patient/${patientId}`);
   }
 
+  getAll(): Observable<Appointment[]> {
+    return this.http.get<Appointment[]>(`${APPOINTMENTS_API_URL}/all`);
+  }
+
   getForDoctor(doctorId: string, status?: AppointmentStatus): Observable<Appointment[]> {
     const url = `${APPOINTMENTS_API_URL}/doctor/${doctorId}`;
     return this.http.get<Appointment[]>(status ? `${url}?status=${status}` : url);
@@ -54,5 +58,13 @@ export class AppointmentService {
 
   reject(appointmentId: string, reason: string): Observable<Appointment> {
     return this.http.patch<Appointment>(`${APPOINTMENTS_API_URL}/${appointmentId}/reject`, { reason });
+  }
+
+  cancel(appointmentId: string): Observable<Appointment> {
+    return this.updateStatus(appointmentId, 'CANCELED');
+  }
+
+  updateStatus(appointmentId: string, status: AppointmentStatus): Observable<Appointment> {
+    return this.http.put<Appointment>(`${APPOINTMENTS_API_URL}/${appointmentId}/status?status=${status}`, {});
   }
 }

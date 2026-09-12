@@ -74,6 +74,11 @@ public class AppointmentController {
         return appointmentRepository.findByPatientId(patientId);
     }
 
+    @GetMapping("/all")
+    public List<Appointment> getAllAppointments() {
+        return appointmentRepository.findAll();
+    }
+
     @GetMapping("/doctor/{doctorId}")
     public List<Appointment> getAppointmentsForDoctor(
             @PathVariable String doctorId,
@@ -155,5 +160,50 @@ public class AppointmentController {
         appointment.setRejectionReason(request.reason());
         Appointment saved = appointmentRepository.save(appointment);
         return ResponseEntity.ok(saved);
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateAppointmentStatus(
+            @PathVariable String id,
+            @RequestParam String status
+    ) {
+        String normalizedStatus = status.toUpperCase();
+        if (!List.of("CANCELED", "CONFIRMED", "REJECTED").contains(normalizedStatus)) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Status must be CANCELED, CONFIRMED, or REJECTED."));
+        }
+
+        Optional<Appointment> found = appointmentRepository.findById(id);
+        if (found.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Appointment not found."));
+        }
+
+        Appointment appointment = found.get();
+        if ("CANCELED".equals(normalizedStatus)
+                && !"PENDING".equals(appointment.getStatus())
+                && !"CONFIRMED".equals(appointment.getStatus())) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Only pending or confirmed appointments can be canceled."));
+        }
+        if (!"CANCELED".equals(normalizedStatus) && !"PENDING".equals(appointment.getStatus())) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("Only pending appointments can be accepted or rejected."));
+        }
+
+        if ("CONFIRMED".equals(normalizedStatus)) {
+            boolean alreadyConfirmed = appointmentRepository
+                    .findByDoctorIdAndDateAndStatusIn(appointment.getDoctorId(), appointment.getDate(), List.of("CONFIRMED"))
+                    .stream()
+                    .anyMatch(existing -> existing.getTime().equals(appointment.getTime())
+                            && !existing.getId().equals(appointment.getId()));
+            if (alreadyConfirmed) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ErrorResponse("This time slot was already confirmed for another patient."));
+            }
+        }
+
+        appointment.setStatus(normalizedStatus);
+        appointment.setRejectionReason("REJECTED".equals(normalizedStatus) ? "Declined by receptionist." : null);
+        return ResponseEntity.ok(appointmentRepository.save(appointment));
     }
 }

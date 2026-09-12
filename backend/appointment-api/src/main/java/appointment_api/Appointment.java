@@ -21,7 +21,7 @@ public class Appointment {
     private String date; // ISO yyyy-MM-dd
     private String time; // e.g. "10:30 AM"
 
-    private String status; // PENDING, CONFIRMED, REJECTED
+    private String status; // PENDING, CONFIRMED, REJECTED, CANCELED
 
     private String rejectionReason;
 

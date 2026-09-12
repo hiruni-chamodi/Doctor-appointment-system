@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
-export type UserRole = 'DOCTOR' | 'PATIENT';
+export type UserRole = 'DOCTOR' | 'PATIENT' | 'RECEPTIONIST' | 'PHARMACIST' | 'ADMIN';
 
 export interface AuthUser {
   id: string;

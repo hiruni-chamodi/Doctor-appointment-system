@@ -1,5 +1,11 @@
 <div class="layout-shell">
-  <app-sidebar [profileName]="profileName" [profileRole]="profileRole" [showPrimaryAction]="false"></app-sidebar>
+  <app-sidebar
+    [profileName]="profileName"
+    [profileRole]="profileRole"
+    [navItems]="navItems"
+    [showPrimaryAction]="false"
+    [adminStyle]="isAdmin"
+  ></app-sidebar>
   <div class="layout-content">
     <router-outlet></router-outlet>
   </div>

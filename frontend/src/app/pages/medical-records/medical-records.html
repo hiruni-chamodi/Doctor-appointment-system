@@ -1,6 +1,6 @@
 <div class="records-page">
   <h1>Medical Records</h1>
-  <p class="subtitle">Browse patient records.</p>
+  <p class="subtitle">Search a patient to view their history and record today's visit.</p>
 
   <!-- Search -->
   <div class="search-wrap">
@@ -35,54 +35,120 @@
     }
   </div>
 
-  @if (isLoading()) {
+  @if (isLoadingPatients()) {
     <div class="state-card">Loading patients…</div>
   } @else if (loadError()) {
     <div class="state-card error">{{ loadError() }}</div>
-  } @else if (patients().length === 0) {
-    <div class="state-card">No patients registered yet.</div>
-  } @else {
-    <div class="carousel">
-      @if (patients().length > 1) {
-        <button type="button" class="nav-arrow" (click)="previous()" aria-label="Previous patient">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-      }
-
-      <div class="patient-card">
-        @if (currentPatient(); as patient) {
-          <div class="patient-avatar">{{ patient.fullName.charAt(0) }}</div>
-          <h2>{{ patient.fullName }}</h2>
-          <p class="patient-email">{{ patient.email }}</p>
-
-          <div class="patient-info-grid">
-            <div class="info-block">
-              <span class="info-label">Blood Type</span>
-              <span class="info-value">{{ patient.bloodType }}</span>
-            </div>
-            <div class="info-block">
-              <span class="info-label">Last Visit</span>
-              <span class="info-value">{{ patient.lastVisitDate }}</span>
-            </div>
-            <div class="info-block info-block-wide">
-              <span class="info-label">Allergies</span>
-              <span class="info-value">{{ patient.allergies.join(', ') }}</span>
-            </div>
-          </div>
+  } @else if (!selectedPatient()) {
+    @if (patients().length === 0) {
+      <div class="state-card">No patients registered yet.</div>
+    } @else {
+      <div class="patient-list">
+        <p class="patient-list-hint">Select a patient to view or add their medical records.</p>
+        @for (patient of patients(); track patient.id) {
+          <button type="button" class="patient-list-item" (click)="selectPatient(patient)">
+            <span class="patient-list-avatar">{{ patient.fullName.charAt(0) }}</span>
+            <span class="patient-list-info">
+              <span class="patient-list-name">{{ patient.fullName }}</span>
+              <span class="patient-list-email">{{ patient.email }}</span>
+            </span>
+            <svg class="patient-list-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
         }
-
-        <div class="patient-counter">Patient {{ currentIndex() + 1 }} of {{ patients().length }}</div>
+      </div>
+    }
+  } @else {
+    <div class="patient-workspace">
+      <div class="patient-header-card">
+        <div class="patient-avatar">{{ selectedPatient()!.fullName.charAt(0) }}</div>
+        <div class="patient-header-text">
+          <h2>{{ selectedPatient()!.fullName }}</h2>
+          @if (selectedPatient()!.email) {
+            <p class="patient-email">{{ selectedPatient()!.email }}</p>
+          }
+        </div>
+        <button type="button" class="change-patient-btn" (click)="changePatient()">Change patient</button>
       </div>
 
-      @if (patients().length > 1) {
-        <button type="button" class="nav-arrow" (click)="next()" aria-label="Next patient">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-      }
+      <div class="workspace-grid">
+        <!-- Add record form -->
+        <form class="record-form" (ngSubmit)="submitRecord()">
+          <h3>Add Visit Record</h3>
+
+          <label class="field-label" for="healthCondition">Health condition / diagnosis</label>
+          <input
+            id="healthCondition"
+            type="text"
+            name="healthCondition"
+            [(ngModel)]="healthCondition"
+            placeholder="e.g. Seasonal flu, mild dehydration"
+            required
+          />
+
+          <label class="field-label" for="medicinesProvided">Medicines provided</label>
+          <textarea
+            id="medicinesProvided"
+            name="medicinesProvided"
+            rows="3"
+            [(ngModel)]="medicinesProvided"
+            placeholder="e.g. Paracetamol 500mg – twice daily for 5 days"
+          ></textarea>
+
+          <label class="field-label" for="additionalNotes">Additional notes</label>
+          <textarea
+            id="additionalNotes"
+            name="additionalNotes"
+            rows="3"
+            [(ngModel)]="additionalNotes"
+            placeholder="Anything else the patient should know"
+          ></textarea>
+
+          @if (submitError()) {
+            <p class="form-message error">{{ submitError() }}</p>
+          }
+          @if (submitSuccess()) {
+            <p class="form-message success">Record saved. The patient can now see it in their Medical Records tab.</p>
+          }
+
+          <button type="submit" class="submit-btn" [disabled]="!healthCondition.trim() || isSubmitting()">
+            {{ isSubmitting() ? 'Saving…' : 'Save Record' }}
+          </button>
+        </form>
+
+        <!-- History -->
+        <div class="record-history">
+          <h3>Visit History</h3>
+          @if (isLoadingRecords()) {
+            <p class="history-empty">Loading records…</p>
+          } @else if (recordsError()) {
+            <p class="history-empty error">{{ recordsError() }}</p>
+          } @else if (records().length === 0) {
+            <p class="history-empty">No medical records yet for this patient.</p>
+          } @else {
+            <div class="history-list">
+              @for (record of records(); track record.id) {
+                <div class="history-item">
+                  <div class="history-item-top">
+                    <span class="history-condition">{{ record.healthCondition }}</span>
+                    <span class="history-date">{{ record.dateRecorded | date: 'mediumDate' }}</span>
+                  </div>
+                  @if (record.doctorName) {
+                    <p class="history-doctor">Recorded by Dr. {{ record.doctorName }}</p>
+                  }
+                  @if (record.medicinesProvided) {
+                    <p class="history-detail"><strong>Medicines:</strong> {{ record.medicinesProvided }}</p>
+                  }
+                  @if (record.additionalNotes) {
+                    <p class="history-detail"><strong>Notes:</strong> {{ record.additionalNotes }}</p>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
     </div>
   }
 </div>

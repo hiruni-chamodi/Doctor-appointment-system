@@ -88,7 +88,20 @@
               <div class="day-row-body">
                 @if (appointmentAt(anchorIso, slot); as appt) {
                   <div class="appointment-card day-appointment-card" [class.confirmed]="appt.status === 'CONFIRMED'" [class.pending]="appt.status === 'PENDING'">
-                    <span class="appointment-name">{{ appt.patientName }}</span>
+                    <div class="appointment-card-top">
+                      <span class="appointment-name">{{ appt.patientName }}</span>
+                      <button
+                        type="button"
+                        class="add-note-btn"
+                        title="Add medical record"
+                        [attr.aria-label]="'Add medical record for ' + appt.patientName"
+                        (click)="addRecordFor(appt, $event)"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+                        </svg>
+                      </button>
+                    </div>
                     <span class="appointment-status">
                       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
@@ -167,7 +180,20 @@
               [style.grid-column]="dayColumn(appt.date)"
               [style.grid-row]="(rowForTime(appt.time) + 2) + ' / span 1'"
             >
-              <span class="appointment-name">{{ appt.patientName }}</span>
+              <div class="appointment-card-top">
+                <span class="appointment-name">{{ appt.patientName }}</span>
+                <button
+                  type="button"
+                  class="add-note-btn"
+                  title="Add medical record"
+                  [attr.aria-label]="'Add medical record for ' + appt.patientName"
+                  (click)="addRecordFor(appt, $event)"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+                  </svg>
+                </button>
+              </div>
               <span class="appointment-status">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />

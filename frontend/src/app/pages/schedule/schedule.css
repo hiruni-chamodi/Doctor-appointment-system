@@ -82,9 +82,14 @@
 .body-cell.active-col { background: #f4faf6; }
 
 .appointment-card { margin: 6px; padding: 10px 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; z-index: 1; }
+.appointment-card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .appointment-name { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .appointment-status { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; }
 .appointment-status svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+.add-note-btn { flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; border: none; background: rgba(255, 255, 255, 0.55); color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.add-note-btn:hover { background: rgba(255, 255, 255, 0.9); }
+.add-note-btn svg { width: 12px; height: 12px; }
 
 .appointment-card.confirmed { background: #dcf3e4; color: #146c43; }
 .appointment-card.pending { background: #ded0ba; color: #5c4326; }

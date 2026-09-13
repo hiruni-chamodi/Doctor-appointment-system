@@ -16,10 +16,10 @@ export class PatientLayout {
   protected readonly primaryActionLabel = 'Book Appointment';
 
   protected readonly navItems: NavItem[] = [
+    { label: 'Dashboard', icon: 'dashboard', path: '/patient-dashboard' },
     { label: 'My Appointments', icon: 'appointments', path: '/my-appointments' },
     { label: 'Book Appointment', icon: 'book', path: '/find-doctor' },
     { label: 'Medical Records', icon: 'records', path: '/medical-records' },
-    { label: 'Profile', icon: 'profile', path: '/profile' },
     { label: 'Settings', icon: 'settings', path: '/profile' },
   ];
 

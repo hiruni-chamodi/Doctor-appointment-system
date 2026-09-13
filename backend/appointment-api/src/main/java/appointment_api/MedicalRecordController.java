@@ -57,6 +57,9 @@ public class MedicalRecordController {
         record.setPatientId(request.patientId());
         record.setDoctorId(request.doctorId());
         record.setDoctorName(request.doctorName());
+        record.setWeight(blankToNull(request.weight()));
+        record.setBloodPressure(blankToNull(request.bloodPressure()));
+        record.setHeartRate(blankToNull(request.heartRate()));
         record.setHealthCondition(request.healthCondition().trim());
         record.setMedicinesProvided(blankToNull(request.medicinesProvided()));
         record.setAdditionalNotes(blankToNull(request.additionalNotes()));

@@ -7,6 +7,9 @@ export interface MedicalRecord {
   patientId: string;
   doctorId: string | null;
   doctorName: string | null;
+  weight: string | null;
+  bloodPressure: string | null;
+  heartRate: string | null;
   healthCondition: string;
   medicinesProvided: string | null;
   additionalNotes: string | null;
@@ -17,6 +20,9 @@ export interface CreateMedicalRecordPayload {
   patientId: string;
   doctorId?: string | null;
   doctorName?: string | null;
+  weight?: string | null;
+  bloodPressure?: string | null;
+  heartRate?: string | null;
   healthCondition: string;
   medicinesProvided?: string | null;
   additionalNotes?: string | null;

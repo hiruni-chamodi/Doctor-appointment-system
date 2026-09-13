@@ -135,6 +135,7 @@
               <div class="grid grid-cols-3 gap-3">
                 @for (slot of timeSlots; track slot) {
                   <button
+                    type="button"
                     [class]="slotClasses(slot)"
                     [disabled]="isSlotTaken(slot)"
                     (click)="selectTime(slot)"
@@ -149,9 +150,16 @@
 
             <!-- Confirm Button -->
             <div class="mt-8 flex justify-end">
+              @if (!selectedTime()) {
+                <p class="mr-4 self-center text-sm font-medium text-gray-500">
+                  Select an available time slot to continue.
+                </p>
+              }
               <button
+                type="button"
                 class="bg-[#0A3F35] text-white px-8 py-3.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-900 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 [disabled]="!selectedTime() || submitState() === 'submitting'"
+                [attr.aria-label]="selectedTime() ? 'Request appointment' : 'Select a time slot before requesting an appointment'"
                 (click)="onConfirm()"
               >
                 {{ submitState() === 'submitting' ? 'Sending Request…' : 'Request Appointment' }}

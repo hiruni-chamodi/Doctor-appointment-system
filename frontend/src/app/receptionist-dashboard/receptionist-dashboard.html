@@ -1,0 +1,66 @@
+<div class="min-h-screen bg-[#eaf3ee] p-8 lg:p-12 font-sans">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-[#0A3F35] mb-2">Receptionist Dashboard</h1>
+      <p class="text-gray-500 text-lg">Review and manage pending appointments for all doctors.</p>
+    </div>
+
+    @if (isLoading()) {
+      <div class="bg-white/65 rounded-2xl shadow-lg border border-white/60 p-12 text-center text-gray-500">
+        Loading pending appointments…
+      </div>
+    } @else if (loadError()) {
+      <div class="bg-white/65 rounded-2xl shadow-lg border border-white/60 p-12 text-center text-red-600">
+        {{ loadError() }}
+      </div>
+    } @else if (appointments().length === 0) {
+      <div class="bg-white/65 rounded-2xl shadow-lg border border-white/60 p-12 text-center text-gray-500">
+        No pending appointments right now.
+      </div>
+    } @else {
+      <div class="overflow-x-auto bg-white/65 rounded-2xl shadow-lg border border-white/60">
+        <table class="w-full text-left">
+          <thead class="border-b border-gray-200 text-sm text-gray-500">
+            <tr>
+              <th class="px-6 py-4 font-semibold">Patient</th>
+              <th class="px-6 py-4 font-semibold">Doctor</th>
+              <th class="px-6 py-4 font-semibold">Date</th>
+              <th class="px-6 py-4 font-semibold">Time</th>
+              <th class="px-6 py-4 font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (appointment of appointments(); track appointment.id) {
+              <tr class="text-sm text-gray-700">
+                <td class="px-6 py-4 font-semibold text-gray-900">{{ appointment.patientName }}</td>
+                <td class="px-6 py-4">{{ appointment.doctorName }}</td>
+                <td class="px-6 py-4">{{ formatDate(appointment.date) }}</td>
+                <td class="px-6 py-4">{{ appointment.time }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      class="bg-[#0A3F35] text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-900 transition disabled:opacity-50"
+                      [disabled]="submitting() !== null"
+                      (click)="accept(appointment)"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      type="button"
+                      class="bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg font-semibold hover:bg-red-50 transition disabled:opacity-50"
+                      [disabled]="submitting() !== null"
+                      (click)="decline(appointment)"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

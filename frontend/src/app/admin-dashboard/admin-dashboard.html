@@ -1,0 +1,99 @@
+<div class="min-h-screen bg-[#eaf3ee] p-8 lg:p-12 font-sans">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-4xl font-bold text-[#0A3F35] mb-2">Admin Dashboard</h1>
+      <p class="text-gray-500 text-lg">Manage clinic operations and pending appointments.</p>
+    </div>
+
+    @if (!isLoading() && !loadError()) {
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span>Registered Patients (Clinic)</span>
+          <strong>{{ registeredPatients }}</strong>
+          <small>Total active patients in the system</small>
+        </div>
+        <div class="stat-card">
+          <span>Doctors on Shift</span>
+          <strong>{{ doctorsOnShift }}</strong>
+          <small>Doctors with scheduled appointments</small>
+        </div>
+        <div class="stat-card">
+          <span>Patient Registrations (Pending)</span>
+          <strong>{{ pendingRequests }}</strong>
+          <small>New requests to be verified</small>
+        </div>
+        <div class="stat-card">
+          <span>Pending Requests (All Doctors)</span>
+          <strong>{{ pendingRequests }}</strong>
+          <small>Total requests across all departments</small>
+        </div>
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="state-card">Loading pending appointments…</div>
+    } @else if (loadError()) {
+      <div class="state-card error">{{ loadError() }}</div>
+    } @else if (appointments().length === 0) {
+      <div class="state-card">No pending appointments right now.</div>
+    } @else {
+      <div class="queue-heading">
+        <h2>Pending Appointment Request Queue (Clinic-Wide)</h2>
+        <div class="filters">
+          <select [(ngModel)]="departmentFilter" aria-label="Filter by department">
+            <option value="">Filter by department...</option>
+            @for (department of departments; track department) {
+              <option [value]="department.toLowerCase()">{{ department }}</option>
+            }
+          </select>
+          <input [(ngModel)]="doctorFilter" type="search" placeholder="Dr. doctor" aria-label="Filter by doctor" />
+        </div>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Req. Date</th>
+              <th>Patient</th>
+              <th>Desired Date</th>
+              <th>Desired Time</th>
+              <th>Dr. Requested</th>
+              <th>Department</th>
+              <th>Status</th>
+              <th>Admin Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (appointment of filteredAppointments; track appointment.id) {
+              <tr>
+                <td>{{ formatDate(appointment.createdAt.slice(0, 10)) }}</td>
+                <td class="strong">{{ appointment.patientName }}</td>
+                <td>{{ formatDate(appointment.date) }}</td>
+                <td>{{ appointment.time }}</td>
+                <td>{{ appointment.doctorName }}</td>
+                <td>{{ appointment.doctorSpecialty || 'General Practice' }}</td>
+                <td><span class="status">Pending Approval</span></td>
+                <td>
+                  <div class="actions">
+                    <button
+                      type="button"
+                      class="accept"
+                      [disabled]="submitting() !== null"
+                      (click)="updateStatus(appointment, 'CONFIRMED')"
+                    >Accept</button>
+                    <button
+                      type="button"
+                      class="decline"
+                      [disabled]="submitting() !== null"
+                      (click)="updateStatus(appointment, 'REJECTED')"
+                    >Decline</button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

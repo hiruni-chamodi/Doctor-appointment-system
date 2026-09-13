@@ -54,6 +54,30 @@
   margin: 0;
 }
 
+.view-toggle {
+  background: #e7eaf0;
+  border-radius: 10px;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+}
+
+.view-toggle button {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+}
+
+.view-toggle button.active {
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+  color: #0a3f35;
+}
+
 .filters {
   display: flex;
   gap: 8px;
@@ -121,9 +145,22 @@ th {
 }
 
 .status {
+  border-radius: 999px;
   color: #58665f;
   font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
   white-space: nowrap;
+}
+
+.status.pending { background: #fdf1e2; color: #92651b; }
+.status.confirmed { background: #dcf3e4; color: #146c43; }
+.status.rejected { background: #fbe4e8; color: #b3261e; }
+.status.canceled { background: #f0f1f2; color: #5c6570; }
+
+.no-action {
+  color: #b5bcb8;
+  font-size: 13px;
 }
 
 .actions {
@@ -162,6 +199,33 @@ button:disabled {
 
 .decline:hover:not(:disabled) {
   background: #fef2f2;
+}
+
+.scheduler {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.scheduler select {
+  background: white;
+  border: 1px solid #d8e1dc;
+  border-radius: 0.5rem;
+  color: #18221f;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.45rem 0.6rem;
+}
+
+.cancel-schedule {
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+}
+
+.cancel-schedule:hover {
+  background: #f9fafb;
 }
 
 @media (max-width: 900px) {

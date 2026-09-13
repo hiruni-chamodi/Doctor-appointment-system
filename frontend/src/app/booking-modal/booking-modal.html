@@ -8,7 +8,7 @@
     <div class="px-8 py-8 pb-4 flex justify-between items-start">
       <div>
         <h2 class="text-4xl font-bold text-[#0A3F35] tracking-tight">Book Appointment</h2>
-        <p class="text-gray-500 mt-2 text-lg">Select a time that works for you.</p>
+        <p class="text-gray-500 mt-2 text-lg">Select a date — the clinic will assign your exact time.</p>
       </div>
       <!-- Close Button -->
       <button class="text-gray-400 hover:text-gray-800 transition p-2" (click)="onClose()">
@@ -87,7 +87,7 @@
               </div>
               <h4 class="text-xl font-bold text-[#0A3F35] mb-2">Request sent!</h4>
               <p class="text-gray-500 max-w-sm mb-8">
-                {{ doctorName }} will review your request for {{ selectedTime() }} on {{ selectedDateLabel }} and confirm or decline it shortly.
+                Your request for {{ selectedDateLabel }} with {{ doctorName }} has gone to the clinic desk — they'll assign a time and you'll see it confirmed in My Appointments shortly.
               </p>
               <button class="bg-[#0A3F35] text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-900 transition shadow-md" (click)="onClose()">
                 Done
@@ -96,7 +96,7 @@
           } @else {
             <!-- Calendar Header -->
             <div class="flex justify-between items-center mb-6">
-              <h3 class="text-2xl font-bold text-[#0A3F35]">Select Date & Time</h3>
+              <h3 class="text-2xl font-bold text-[#0A3F35]">Select Date</h3>
               <div class="flex items-center gap-4 text-gray-900 font-bold">
                 <button class="text-gray-400 hover:text-gray-900" (click)="prevMonth()" aria-label="Previous month"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
                 {{ monthLabel }}
@@ -129,19 +129,18 @@
 
             <hr class="border-gray-100 mb-6">
 
-            <!-- Time Slots -->
+            <!-- Availability -->
             <div class="flex-1">
-              <p class="font-medium text-gray-900 mb-4">Available Slots on {{ selectedDateLabel }}</p>
-              <div class="grid grid-cols-3 gap-3">
-                @for (slot of timeSlots; track slot) {
-                  <button
-                    type="button"
-                    [class]="slotClasses(slot)"
-                    [disabled]="isSlotTaken(slot)"
-                    (click)="selectTime(slot)"
-                  >{{ slot }}</button>
-                }
-              </div>
+              <p class="font-medium text-gray-900 mb-2">Availability on {{ selectedDateLabel }}</p>
+              <p
+                class="text-sm font-medium mb-4"
+                [class.text-gray-500]="isLoadingDaySummary()"
+                [class.text-emerald-700]="!isLoadingDaySummary() && canRequestDate"
+                [class.text-red-600]="!isLoadingDaySummary() && !canRequestDate"
+              >{{ availabilityMessage }}</p>
+              <p class="text-gray-500 text-sm">
+                Pick a date above and send the request — the clinic desk will assign your exact appointment time and you'll see it confirmed in My Appointments.
+              </p>
             </div>
 
             @if (submitState() === 'error' && submitError()) {
@@ -150,16 +149,11 @@
 
             <!-- Confirm Button -->
             <div class="mt-8 flex justify-end">
-              @if (!selectedTime()) {
-                <p class="mr-4 self-center text-sm font-medium text-gray-500">
-                  Select an available time slot to continue.
-                </p>
-              }
               <button
                 type="button"
                 class="bg-[#0A3F35] text-white px-8 py-3.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-900 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                [disabled]="!selectedTime() || submitState() === 'submitting'"
-                [attr.aria-label]="selectedTime() ? 'Request appointment' : 'Select a time slot before requesting an appointment'"
+                [disabled]="!canRequestDate || submitState() === 'submitting'"
+                [attr.aria-label]="canRequestDate ? 'Request appointment' : 'This date is not available'"
                 (click)="onConfirm()"
               >
                 {{ submitState() === 'submitting' ? 'Sending Request…' : 'Request Appointment' }}

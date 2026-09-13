@@ -12,6 +12,14 @@
         <button type="button" class="today-btn" (click)="goToday()">Today</button>
         <p>{{ periodLabel }}</p>
       </div>
+      @if (daySummary(); as summary) {
+        <p class="day-summary-line">
+          Starts {{ summary.dailyStartTime || 'anytime' }} · {{ summary.bookedCount }}/{{ summary.maxPatientsPerDay }} booked for {{ dayLabel }}
+          @if (summary.blockedAllDay) {
+            · Unavailable
+          }
+        </p>
+      }
     </div>
     <div class="header-actions">
       <div class="view-toggle">
@@ -21,11 +29,18 @@
           </button>
         }
       </div>
-      <button type="button" class="quick-add-btn">
+      <button type="button" class="quick-add-btn secondary-btn" (click)="openCapacityEditor()">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+          <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Day Capacity
+      </button>
+      <button type="button" class="quick-add-btn" (click)="openAddEvent()">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
         </svg>
-        Quick Add
+        Special Event
       </button>
     </div>
   </header>
@@ -86,7 +101,17 @@
             <div class="day-row">
               <div class="day-row-time">{{ slot }}</div>
               <div class="day-row-body">
-                @if (appointmentAt(anchorIso, slot); as appt) {
+                @if (eventAt(anchorIso, slot); as blockedEvent) {
+                  <div class="event-card day-event-card">
+                    <span class="event-title">{{ blockedEvent.title }}</span>
+                    <button
+                      type="button"
+                      class="event-delete-btn"
+                      aria-label="Remove this special event"
+                      (click)="deleteEvent(blockedEvent, $event)"
+                    >×</button>
+                  </div>
+                } @else if (appointmentAt(anchorIso, slot); as appt) {
                   <div class="appointment-card day-appointment-card" [class.confirmed]="appt.status === 'CONFIRMED'" [class.pending]="appt.status === 'PENDING'">
                     <div class="appointment-card-top">
                       <span class="appointment-name">{{ appt.patientName }}</span>
@@ -132,15 +157,15 @@
                   @if (d.date) {
                     <span class="month-cell-day">{{ d.day }}</span>
                     <div class="month-cell-appts">
-                      @for (appt of appointmentsOn(isoOf(d)); track appt.id; let i = $index) {
+                      @for (chip of monthCellChips(isoOf(d)); track $index; let i = $index) {
                         @if (i < 2) {
-                          <span class="month-chip" [class.confirmed]="appt.status === 'CONFIRMED'" [class.pending]="appt.status === 'PENDING'">
-                            {{ appt.time }} {{ appt.patientName }}
+                          <span class="month-chip" [class.confirmed]="chip.kind === 'confirmed'" [class.pending]="chip.kind === 'pending'" [class.blocked]="chip.kind === 'blocked'">
+                            {{ chip.label }}
                           </span>
                         }
                       }
-                      @if (appointmentsOn(isoOf(d)).length > 2) {
-                        <span class="month-chip-more">+{{ appointmentsOn(isoOf(d)).length - 2 }} more</span>
+                      @if (monthCellChips(isoOf(d)).length > 2) {
+                        <span class="month-chip-more">+{{ monthCellChips(isoOf(d)).length - 2 }} more</span>
                       }
                     </div>
                   }
@@ -203,8 +228,128 @@
               </span>
             </div>
           }
+
+          @for (item of weekWholeDayEvents; track item.event.id) {
+            <div
+              class="event-card week-allday-event"
+              [style.grid-column]="dayColumn(item.iso)"
+              [style.grid-row]="'2 / span ' + timeSlots.length"
+            >
+              <span class="event-title">{{ item.event.title }}</span>
+              <button type="button" class="event-delete-btn" aria-label="Remove this special event" (click)="deleteEvent(item.event, $event)">×</button>
+            </div>
+          }
+
+          @for (evt of weekTimedEvents; track evt.id) {
+            <div
+              class="event-card"
+              [style.grid-column]="dayColumn(evt.date)"
+              [style.grid-row]="(rowForTime(evt.time) + 2) + ' / span 1'"
+            >
+              <span class="event-title">{{ evt.title }}</span>
+              <button type="button" class="event-delete-btn" aria-label="Remove this special event" (click)="deleteEvent(evt, $event)">×</button>
+            </div>
+          }
         </div>
       }
     </div>
   </div>
+
+  @if (isAddingEvent()) {
+    <div class="event-modal-backdrop" (click)="closeAddEvent()">
+      <div class="event-modal" (click)="$event.stopPropagation()">
+        <h3>Add Special Event</h3>
+        <p class="event-modal-subtitle">Block time on your calendar — leave, a meeting, anything patients shouldn't be able to book.</p>
+
+        <label class="field-label" for="eventTitle">Title</label>
+        <input id="eventTitle" name="eventTitle" type="text" [(ngModel)]="eventTitle" placeholder="e.g. Annual leave, Staff meeting" />
+
+        <label class="field-label" for="eventDate">Date</label>
+        <input id="eventDate" name="eventDate" type="date" [(ngModel)]="eventDate" />
+
+        <label class="event-checkbox">
+          <input type="checkbox" name="eventAllDay" [(ngModel)]="eventAllDay" />
+          Block the whole day
+        </label>
+
+        @if (!eventAllDay) {
+          <label class="field-label" for="eventTime">Time</label>
+          <select id="eventTime" name="eventTime" [(ngModel)]="eventTime">
+            @for (slot of timeSlots; track slot) {
+              <option [value]="slot">{{ slot }}</option>
+            }
+          </select>
+        }
+
+        @if (eventFormError()) {
+          <p class="form-message error">{{ eventFormError() }}</p>
+        }
+
+        <div class="event-modal-actions">
+          <button type="button" class="event-cancel-btn" (click)="closeAddEvent()">Cancel</button>
+          <button
+            type="button"
+            class="event-save-btn"
+            [disabled]="!eventTitle.trim() || !eventDate || isSavingEvent()"
+            (click)="submitEvent()"
+          >
+            {{ isSavingEvent() ? 'Saving…' : 'Add Event' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (isEditingCapacity()) {
+    <div class="event-modal-backdrop" (click)="closeCapacityEditor()">
+      <div class="event-modal" (click)="$event.stopPropagation()">
+        <h3>Day Capacity</h3>
+        <p class="event-modal-subtitle">
+          Set your start time and patient limit for {{ dayLabel }} only — overrides your standing default from Settings for just this date.
+        </p>
+
+        <label class="field-label" for="capacityStartTime">Start time</label>
+        <select id="capacityStartTime" name="capacityStartTime" [(ngModel)]="capacityStartTime">
+          @for (slot of timeSlots; track slot) {
+            <option [value]="slot">{{ slot }}</option>
+          }
+        </select>
+
+        <label class="field-label" for="capacityMaxPatients">Max patients</label>
+        <input
+          id="capacityMaxPatients"
+          name="capacityMaxPatients"
+          type="number"
+          min="1"
+          max="8"
+          [(ngModel)]="capacityMaxPatients"
+        />
+
+        @if (hasOverrideForDay()) {
+          <p class="event-modal-subtitle override-active">A custom setting is active for this date.</p>
+        }
+
+        @if (capacityFormError()) {
+          <p class="form-message error">{{ capacityFormError() }}</p>
+        }
+
+        <div class="event-modal-actions">
+          @if (hasOverrideForDay()) {
+            <button type="button" class="event-remove-btn" [disabled]="isSavingCapacity()" (click)="removeCapacityOverride()">
+              Remove Override
+            </button>
+          }
+          <button type="button" class="event-cancel-btn" (click)="closeCapacityEditor()">Cancel</button>
+          <button
+            type="button"
+            class="event-save-btn"
+            [disabled]="!capacityStartTime || capacityMaxPatients < 1 || isSavingCapacity()"
+            (click)="submitCapacity()"
+          >
+            {{ isSavingCapacity() ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

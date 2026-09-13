@@ -25,7 +25,6 @@
               <th class="px-6 py-4 font-semibold">Patient</th>
               <th class="px-6 py-4 font-semibold">Doctor</th>
               <th class="px-6 py-4 font-semibold">Date</th>
-              <th class="px-6 py-4 font-semibold">Time</th>
               <th class="px-6 py-4 font-semibold">Actions</th>
             </tr>
           </thead>
@@ -35,26 +34,57 @@
                 <td class="px-6 py-4 font-semibold text-gray-900">{{ appointment.patientName }}</td>
                 <td class="px-6 py-4">{{ appointment.doctorName }}</td>
                 <td class="px-6 py-4">{{ formatDate(appointment.date) }}</td>
-                <td class="px-6 py-4">{{ appointment.time }}</td>
                 <td class="px-6 py-4">
-                  <div class="flex gap-2">
-                    <button
-                      type="button"
-                      class="bg-[#0A3F35] text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-900 transition disabled:opacity-50"
-                      [disabled]="submitting() !== null"
-                      (click)="accept(appointment)"
-                    >
-                      Accept
-                    </button>
-                    <button
-                      type="button"
-                      class="bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg font-semibold hover:bg-red-50 transition disabled:opacity-50"
-                      [disabled]="submitting() !== null"
-                      (click)="decline(appointment)"
-                    >
-                      Decline
-                    </button>
-                  </div>
+                  @if (schedulingId() === appointment.id) {
+                    <div class="flex flex-wrap items-center gap-2">
+                      <select
+                        [(ngModel)]="selectedTime"
+                        aria-label="Choose a time to assign"
+                        class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold text-gray-900"
+                      >
+                        <option value="" disabled>Choose a time…</option>
+                        @for (slot of timeSlots; track slot) {
+                          <option [value]="slot" [disabled]="isTimeBlocked(slot)">
+                            {{ slot }}{{ isBeforeStartTime(slot) ? ' (before start)' : (isTimeBlocked(slot) ? ' (unavailable)' : '') }}
+                          </option>
+                        }
+                      </select>
+                      <button
+                        type="button"
+                        class="bg-[#0A3F35] text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-900 transition disabled:opacity-50"
+                        [disabled]="!selectedTime || submitting() !== null"
+                        (click)="confirmSchedule(appointment)"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        type="button"
+                        class="bg-white border border-gray-200 text-gray-500 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition"
+                        (click)="closeScheduler()"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="flex gap-2">
+                      <button
+                        type="button"
+                        class="bg-[#0A3F35] text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-900 transition disabled:opacity-50"
+                        [disabled]="submitting() !== null"
+                        (click)="openScheduler(appointment)"
+                      >
+                        Schedule
+                      </button>
+                      <button
+                        type="button"
+                        class="bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg font-semibold hover:bg-red-50 transition disabled:opacity-50"
+                        [disabled]="submitting() !== null"
+                        (click)="decline(appointment)"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  }
                 </td>
               </tr>
             }

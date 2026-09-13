@@ -2,7 +2,7 @@
   <div class="max-w-6xl mx-auto">
     <div class="mb-6">
       <h1 class="text-4xl font-bold text-[#0A3F35] mb-2">Admin Dashboard</h1>
-      <p class="text-gray-500 text-lg">Manage clinic operations and pending appointments.</p>
+      <p class="text-gray-500 text-lg">Manage clinic operations and appointments.</p>
     </div>
 
     @if (!isLoading() && !loadError()) {
@@ -31,14 +31,15 @@
     }
 
     @if (isLoading()) {
-      <div class="state-card">Loading pending appointments…</div>
+      <div class="state-card">Loading appointments…</div>
     } @else if (loadError()) {
       <div class="state-card error">{{ loadError() }}</div>
-    } @else if (appointments().length === 0) {
-      <div class="state-card">No pending appointments right now.</div>
     } @else {
       <div class="queue-heading">
-        <h2>Pending Appointment Request Queue (Clinic-Wide)</h2>
+        <div class="view-toggle">
+          <button type="button" [class.active]="viewMode() === 'pending'" (click)="setViewMode('pending')">Pending Requests</button>
+          <button type="button" [class.active]="viewMode() === 'all'" (click)="setViewMode('all')">All Appointments</button>
+        </div>
         <div class="filters">
           <select [(ngModel)]="departmentFilter" aria-label="Filter by department">
             <option value="">Filter by department...</option>
@@ -49,51 +50,89 @@
           <input [(ngModel)]="doctorFilter" type="search" placeholder="Dr. doctor" aria-label="Filter by doctor" />
         </div>
       </div>
-      <div class="table-card">
-        <table>
-          <thead>
-            <tr>
-              <th>Req. Date</th>
-              <th>Patient</th>
-              <th>Desired Date</th>
-              <th>Desired Time</th>
-              <th>Dr. Requested</th>
-              <th>Department</th>
-              <th>Status</th>
-              <th>Admin Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (appointment of filteredAppointments; track appointment.id) {
+
+      @if (filteredAppointments.length === 0) {
+        <div class="state-card">
+          {{ viewMode() === 'pending' ? 'No pending appointments right now.' : 'No appointments found.' }}
+        </div>
+      } @else {
+        <div class="table-card">
+          <table>
+            <thead>
               <tr>
-                <td>{{ formatDate(appointment.createdAt.slice(0, 10)) }}</td>
-                <td class="strong">{{ appointment.patientName }}</td>
-                <td>{{ formatDate(appointment.date) }}</td>
-                <td>{{ appointment.time }}</td>
-                <td>{{ appointment.doctorName }}</td>
-                <td>{{ appointment.doctorSpecialty || 'General Practice' }}</td>
-                <td><span class="status">Pending Approval</span></td>
-                <td>
-                  <div class="actions">
-                    <button
-                      type="button"
-                      class="accept"
-                      [disabled]="submitting() !== null"
-                      (click)="updateStatus(appointment, 'CONFIRMED')"
-                    >Accept</button>
-                    <button
-                      type="button"
-                      class="decline"
-                      [disabled]="submitting() !== null"
-                      (click)="updateStatus(appointment, 'REJECTED')"
-                    >Decline</button>
-                  </div>
-                </td>
+                <th>Req. Date</th>
+                <th>Patient</th>
+                <th>Appt. Date</th>
+                <th>Time</th>
+                <th>Dr. Requested</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Admin Action</th>
               </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              @for (appointment of filteredAppointments; track appointment.id) {
+                <tr>
+                  <td>{{ formatDate(appointment.createdAt.slice(0, 10)) }}</td>
+                  <td class="strong">{{ appointment.patientName }}</td>
+                  <td>{{ formatDate(appointment.date) }}</td>
+                  <td>{{ appointment.time || '—' }}</td>
+                  <td>{{ appointment.doctorName }}</td>
+                  <td>{{ appointment.doctorSpecialty || 'General Practice' }}</td>
+                  <td><span class="status" [class]="appointment.status.toLowerCase()">{{ statusLabel(appointment.status) }}</span></td>
+                  <td>
+                    @if (schedulingId() === appointment.id) {
+                      <div class="scheduler">
+                        <select [(ngModel)]="selectedTime" aria-label="Choose a time to assign">
+                          <option value="" disabled>Choose a time…</option>
+                          @for (slot of timeSlots; track slot) {
+                            <option [value]="slot" [disabled]="isTimeBlocked(slot)">
+                              {{ slot }}{{ isBeforeStartTime(slot) ? ' (before start)' : (isTimeBlocked(slot) ? ' (unavailable)' : '') }}
+                            </option>
+                          }
+                        </select>
+                        <button
+                          type="button"
+                          class="accept"
+                          [disabled]="!selectedTime || submitting() !== null"
+                          (click)="confirmSchedule(appointment)"
+                        >Confirm</button>
+                        <button type="button" class="cancel-schedule" (click)="closeScheduler()">Cancel</button>
+                      </div>
+                    } @else if (appointment.status === 'PENDING') {
+                      <div class="actions">
+                        <button
+                          type="button"
+                          class="accept"
+                          [disabled]="submitting() !== null"
+                          (click)="openScheduler(appointment)"
+                        >Schedule</button>
+                        <button
+                          type="button"
+                          class="decline"
+                          [disabled]="submitting() !== null"
+                          (click)="decline(appointment)"
+                        >Decline</button>
+                      </div>
+                    } @else if (appointment.status === 'CONFIRMED') {
+                      <div class="actions">
+                        <button
+                          type="button"
+                          class="decline"
+                          [disabled]="submitting() !== null"
+                          (click)="cancel(appointment)"
+                        >Cancel</button>
+                      </div>
+                    } @else {
+                      <span class="no-action">—</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     }
   </div>
 </div>

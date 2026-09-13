@@ -26,6 +26,7 @@ export class PatientDashboardComponent implements OnInit {
   protected readonly profileName: string;
 
   protected isBookingModalOpen = false;
+  protected selectedDoctorId = '';
   protected selectedDoctorName = '';
   protected selectedDoctorRole = '';
 
@@ -40,7 +41,8 @@ export class PatientDashboardComponent implements OnInit {
 
   private readonly patientId: string;
 
-  openBookingModal(doctorName: string, doctorRole: string) {
+  openBookingModal(doctorId: string, doctorName: string, doctorRole: string) {
+    this.selectedDoctorId = doctorId;
     this.selectedDoctorName = doctorName;
     this.selectedDoctorRole = doctorRole;
     this.isBookingModalOpen = true;

@@ -149,7 +149,7 @@
                     <p class="text-sm text-gray-500">{{ doctor.specialty || 'General Practice' }}</p>
                   </div>
                 </div>
-                <button (click)="openBookingModal(doctor.fullName, doctor.specialty || 'General Practice')" class="bg-[#0A3F35] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-900 transition duration-200">Book</button>
+                <button (click)="openBookingModal(doctor.id, doctor.fullName, doctor.specialty || 'General Practice')" class="bg-[#0A3F35] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-900 transition duration-200">Book</button>
               </div>
               @if (!last) {
                 <hr class="border-gray-100 mt-6">
@@ -211,6 +211,7 @@
 
 @if (isBookingModalOpen) {
   <app-booking-modal
+    [doctorId]="selectedDoctorId"
     [doctorName]="selectedDoctorName"
     [doctorRole]="selectedDoctorRole"
     (closed)="closeBookingModal()"

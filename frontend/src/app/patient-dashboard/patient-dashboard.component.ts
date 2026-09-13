@@ -89,7 +89,7 @@ export class PatientDashboardComponent implements OnInit {
       next: (appointments) => {
         const upcoming = appointments
           .filter((appointment) => appointment.status === 'PENDING' || appointment.status === 'CONFIRMED')
-          .sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`));
+          .sort((a, b) => `${a.date}T${a.time ?? ''}`.localeCompare(`${b.date}T${b.time ?? ''}`));
         this.upcomingAppointments.set(upcoming);
       },
       error: () => this.upcomingAppointments.set([]),

@@ -12,7 +12,8 @@ export interface Appointment {
   doctorName: string;
   doctorSpecialty: string | null;
   date: string; // ISO yyyy-MM-dd
-  time: string;
+  // Null until an admin assigns it via scheduleAppointment() — a fresh request has no time yet.
+  time: string | null;
   status: AppointmentStatus;
   rejectionReason: string | null;
   createdAt: string;
@@ -22,7 +23,16 @@ export interface CreateAppointmentRequest {
   patientId: string;
   doctorId: string;
   date: string;
-  time: string;
+  // No longer chosen by the patient — an admin assigns it afterwards via scheduleAppointment().
+  time?: string;
+}
+
+export interface DoctorDaySummary {
+  maxPatientsPerDay: number;
+  bookedCount: number;
+  remaining: number;
+  blockedAllDay: boolean;
+  dailyStartTime: string | null;
 }
 
 const APPOINTMENTS_API_URL = 'http://localhost:8081/api/appointments';
@@ -50,6 +60,16 @@ export class AppointmentService {
 
   getUnavailableTimes(doctorId: string, date: string): Observable<string[]> {
     return this.http.get<string[]>(`${APPOINTMENTS_API_URL}/doctor/${doctorId}/unavailable-times?date=${date}`);
+  }
+
+  /** Whether a doctor still has room on a given date — used by the booking flow and the admin scheduling screen. */
+  getDaySummary(doctorId: string, date: string): Observable<DoctorDaySummary> {
+    return this.http.get<DoctorDaySummary>(`${APPOINTMENTS_API_URL}/doctor/${doctorId}/day-summary?date=${date}`);
+  }
+
+  /** Admin assigns the actual time to a pending request that was made without one. */
+  scheduleAppointment(appointmentId: string, time: string): Observable<Appointment> {
+    return this.http.patch<Appointment>(`${APPOINTMENTS_API_URL}/${appointmentId}/schedule`, { time });
   }
 
   accept(appointmentId: string): Observable<Appointment> {

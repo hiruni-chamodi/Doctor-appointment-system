@@ -1,4 +1,24 @@
 :host { display: block; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-.page-placeholder { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 16px; box-shadow: 0 8px 30px rgba(16, 24, 40, 0.07); padding: 40px; }
-.page-placeholder h1 { font-size: 28px; font-weight: 700; color: #0d3b2e; margin: 0 0 8px 0; }
-.page-placeholder p { font-size: 15px; color: #6b7570; margin: 0; }
+
+.settings-page h1 { font-size: 28px; font-weight: 700; color: #0d3b2e; margin: 0 0 4px 0; }
+.settings-page .subtitle { font-size: 15px; color: #6b7570; margin: 0 0 28px 0; }
+
+.state-card { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 16px; box-shadow: 0 8px 30px rgba(16, 24, 40, 0.07); padding: 48px; text-align: center; color: #6b7570; font-size: 15px; max-width: 480px; }
+.state-card.error { color: #b3261e; }
+
+.settings-form { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 16px; box-shadow: 0 8px 30px rgba(16, 24, 40, 0.07); padding: 28px; max-width: 420px; display: flex; flex-direction: column; }
+.settings-form h3 { font-size: 16px; font-weight: 700; color: #0d3b2e; margin: 0 0 16px 0; }
+
+.field-label { font-size: 12.5px; font-weight: 600; color: #6b7570; margin: 14px 0 6px 0; }
+.field-label:first-of-type { margin-top: 0; }
+.settings-form select, .settings-form input { width: 100%; box-sizing: border-box; background: #ffffff; border: 1px solid #e3e6ea; border-radius: 10px; padding: 10px 14px; font-size: 14px; color: #12160f; font-family: inherit; }
+.settings-form select:focus, .settings-form input:focus { outline: none; border-color: #0d3b2e; }
+.field-hint { font-size: 12.5px; color: #8a938c; margin: 6px 0 0 0; }
+
+.form-message { font-size: 13.5px; margin: 14px 0 0 0; }
+.form-message.error { color: #b3261e; }
+.form-message.success { color: #1a7a4c; }
+
+.save-btn { margin-top: 18px; align-self: flex-start; background: #0d3b2e; color: #ffffff; border: none; border-radius: 999px; padding: 11px 22px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.save-btn:hover:not(:disabled) { background: #0a2e24; }
+.save-btn:disabled { opacity: 0.5; cursor: not-allowed; }

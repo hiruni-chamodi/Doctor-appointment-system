@@ -57,10 +57,12 @@
             <div class="flex-1 w-full">
               <div class="flex items-center gap-3 mb-2">
                 <span [class]="statusClasses(appt.status)">{{ statusLabel(appt.status) }}</span>
-                <span class="text-gray-900 font-bold flex items-center gap-1.5">
-                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  {{ appt.time }}
-                </span>
+                @if (appt.time) {
+                  <span class="text-gray-900 font-bold flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    {{ appt.time }}
+                  </span>
+                }
               </div>
 
               <h3 class="text-2xl font-bold text-gray-900 mb-1">{{ appt.doctorName }}</h3>
@@ -73,7 +75,7 @@
                 </div>
               } @else if (appt.status === 'PENDING') {
                 <div class="flex items-center gap-2 text-sm text-gray-500">
-                  Waiting for the doctor to confirm this request.
+                  Waiting for the clinic desk to assign a time for this request.
                 </div>
               }
             </div>

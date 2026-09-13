@@ -21,6 +21,11 @@ public class User {
 
     private String specialty;
 
+    // Doctor-only standing schedule settings. Null/unset means "no limit configured yet" —
+    // callers should fall back to a sane default rather than treat null as zero capacity.
+    private String dailyStartTime;
+    private Integer maxPatientsPerDay;
+
     public User() {}
 
     public User(String fullName, String email, String passwordHash, Role role, String specialty) {
@@ -48,4 +53,10 @@ public class User {
 
     public String getSpecialty() { return specialty; }
     public void setSpecialty(String specialty) { this.specialty = specialty; }
+
+    public String getDailyStartTime() { return dailyStartTime; }
+    public void setDailyStartTime(String dailyStartTime) { this.dailyStartTime = dailyStartTime; }
+
+    public Integer getMaxPatientsPerDay() { return maxPatientsPerDay; }
+    public void setMaxPatientsPerDay(Integer maxPatientsPerDay) { this.maxPatientsPerDay = maxPatientsPerDay; }
 }

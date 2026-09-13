@@ -118,7 +118,11 @@
           <div class="flex-1 w-full">
             <div class="flex items-center gap-2 text-sm text-gray-500 font-medium mb-2">
               <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-bold">{{ appointment.status }}</span>
-              <span>• {{ appointment.time }}</span>
+              @if (appointment.time) {
+                <span>• {{ appointment.time }}</span>
+              } @else {
+                <span>• Time pending</span>
+              }
             </div>
             <h3 class="text-lg font-bold text-gray-900">{{ appointment.doctorName }}</h3>
             <p class="text-gray-500 text-sm">{{ appointment.doctorSpecialty || 'General consultation' }}</p>

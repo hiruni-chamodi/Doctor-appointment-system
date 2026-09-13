@@ -21,6 +21,7 @@
 .schedule-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; gap: 20px; flex-wrap: wrap; }
 .schedule-header h1 { font-size: 32px; font-weight: 700; color: #12160f; margin: 0 0 6px 0; }
 .schedule-header p { font-size: 15px; color: #6b7570; margin: 0; }
+.day-summary-line { font-size: 13px; color: #6b7570; margin: 8px 0 0 0; }
 .header-actions { display: flex; align-items: center; gap: 14px; }
 
 .period-nav { display: flex; align-items: center; gap: 8px; }
@@ -36,6 +37,8 @@
 
 .quick-add-btn { display: flex; align-items: center; gap: 8px; background: #0d3b2e; color: #ffffff; border: none; border-radius: 10px; padding: 12px 18px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .quick-add-btn svg { width: 16px; height: 16px; }
+.quick-add-btn.secondary-btn { background: #ffffff; color: #0d3b2e; border: 1px solid #e3e6ea; }
+.quick-add-btn.secondary-btn:hover { background: #eaf3ee; }
 
 .schedule-body { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
 .schedule-side { display: flex; flex-direction: column; gap: 20px; }
@@ -118,5 +121,38 @@
 .month-chip.confirmed { background: #dcf3e4; color: #146c43; }
 .month-chip.pending { background: #ded0ba; color: #5c4326; }
 .month-chip-more { font-size: 11px; font-weight: 600; color: #9aa39c; padding: 0 6px; }
+.month-chip.blocked { background: #f1e4e6; color: #8a3b46; }
+
+/* Special events (blocked calendar time) */
+.event-card { margin: 6px; padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; overflow: hidden; z-index: 1; background: repeating-linear-gradient(135deg, #f6e9ea, #f6e9ea 6px, #f1dcdf 6px, #f1dcdf 12px); color: #8a3b46; border: 1px solid #edc9cd; }
+.event-title { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.event-delete-btn { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; border: none; background: rgba(255, 255, 255, 0.6); color: inherit; font-size: 13px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.event-delete-btn:hover { background: rgba(255, 255, 255, 0.95); }
+.day-event-card { margin: 0; max-width: 320px; }
+.week-allday-event { align-items: flex-start; }
+
+/* Add Special Event modal */
+.event-modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 20, 0.45); backdrop-filter: blur(2px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.event-modal { background: #ffffff; border-radius: 16px; box-shadow: 0 20px 60px rgba(16, 24, 40, 0.25); padding: 28px; width: 100%; max-width: 400px; display: flex; flex-direction: column; }
+.event-modal h3 { font-size: 18px; font-weight: 700; color: #0d3b2e; margin: 0 0 6px 0; }
+.event-modal-subtitle { font-size: 13.5px; color: #6b7570; margin: 0 0 18px 0; }
+.event-modal-subtitle.override-active { color: #a5680d; margin: 14px 0 0 0; }
+.event-modal .field-label { font-size: 12.5px; font-weight: 600; color: #6b7570; margin: 14px 0 6px 0; }
+.event-modal .field-label:first-of-type { margin-top: 0; }
+.event-modal input[type="text"], .event-modal input[type="date"], .event-modal input[type="number"], .event-modal select { width: 100%; box-sizing: border-box; background: #ffffff; border: 1px solid #e3e6ea; border-radius: 10px; padding: 10px 14px; font-size: 14px; color: #12160f; font-family: inherit; }
+.event-modal input:focus, .event-modal select:focus { outline: none; border-color: #0d3b2e; }
+.event-checkbox { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #12160f; margin: 16px 0 0 0; cursor: pointer; }
+.event-checkbox input { width: 16px; height: 16px; }
+.form-message { font-size: 13.5px; margin: 14px 0 0 0; }
+.form-message.error { color: #b3261e; }
+.event-modal-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.event-remove-btn { margin-right: auto; background: none; border: none; color: #b3261e; font-size: 13px; font-weight: 600; cursor: pointer; padding: 10px 4px; }
+.event-remove-btn:hover:not(:disabled) { text-decoration: underline; }
+.event-remove-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.event-cancel-btn { background: #ffffff; border: 1px solid #e3e6ea; border-radius: 999px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; color: #4b544e; cursor: pointer; }
+.event-cancel-btn:hover { background: #f4f6f5; }
+.event-save-btn { background: #0d3b2e; color: #ffffff; border: none; border-radius: 999px; padding: 10px 20px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.event-save-btn:hover:not(:disabled) { background: #0a2e24; }
+.event-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 1100px) { .schedule-body { grid-template-columns: 1fr; } }

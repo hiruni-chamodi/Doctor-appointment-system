@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { Appointment, AppointmentService } from '../../services/appointment.service';
@@ -7,6 +8,7 @@ import { ReminderService } from '../../services/reminder.service';
 import { AppointmentRequestsModal } from '../../appointment-requests-modal/appointment-requests-modal';
 import { getInitials } from '../../shared/initials';
 import { stripTime, toIsoDate } from '../../shared/calendar-grid';
+import { BOOKABLE_TIME_SLOTS } from '../../shared/time-slots';
 
 type ReminderState = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -47,6 +49,10 @@ interface PatientRecord {
 const DOCTORS_API_URL = 'http://localhost:8081/api/doctors';
 const PATIENTS_API_URL = 'http://localhost:8081/api/patients';
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+/** Which confirmed-appointment ids this doctor has already opened the bell to see, per doctor —
+ *  purely a local read-tracking marker, not a real backend notification system. */
+const SEEN_APPOINTMENTS_STORAGE_PREFIX = 'zenith_seen_appointments_';
 
 /** Quick-pick messages for the reminder box, so the doctor isn't always typing one from scratch. */
 const CANNED_REMINDER_MESSAGES = [
@@ -91,17 +97,31 @@ export class Dashboard implements OnInit {
   protected readonly reminderError = signal('');
   protected readonly cannedReminderMessages = CANNED_REMINDER_MESSAGES;
 
+  // Recently confirmed appointments for the notification bell — "recent" is a proxy for "new",
+  // since appointments don't track a separate confirmed-at timestamp. isNotificationsOpen is a
+  // plain field (not a signal) because it's only ever flipped synchronously from a template click.
+  protected readonly recentConfirmed = signal<Appointment[]>([]);
+  protected readonly unreadNotificationCount = signal(0);
+  protected isNotificationsOpen = false;
+
+  // Today's confirmed appointments, in time order — the actual list a doctor lands on
+  // this page to see (the stat card above only shows a count).
+  protected readonly todaysAppointments = signal<Appointment[]>([]);
+
   private readonly today = stripTime(new Date());
+  private seenAppointmentIds = new Set<string>();
 
   constructor(
     private authService: AuthService,
     private http: HttpClient,
     private appointmentService: AppointmentService,
     private reminderService: ReminderService,
+    private router: Router,
   ) {
     const currentUser = this.authService.getCurrentUser();
     this.doctorName = currentUser?.fullName ?? 'Doctor';
     this.doctorId = currentUser?.id ?? '';
+    this.loadSeenAppointmentIds();
   }
 
   ngOnInit(): void {
@@ -137,12 +157,54 @@ export class Dashboard implements OnInit {
         this.stats.set(this.computeStats(appointments));
         this.bookingTrends.set(this.computeBookingTrends(appointments));
         this.myPatients.set(this.uniquePatients(appointments));
+
+        const confirmed = appointments
+          .filter((a) => a.status === 'CONFIRMED')
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+          .slice(0, 8);
+        this.recentConfirmed.set(confirmed);
+        this.unreadNotificationCount.set(confirmed.filter((a) => !this.seenAppointmentIds.has(a.id)).length);
+
+        const todayIso = toIsoDate(this.today);
+        this.todaysAppointments.set(
+          appointments
+            .filter((a): a is Appointment & { time: string } => a.status === 'CONFIRMED' && a.date === todayIso && a.time !== null)
+            .sort((a, b) => BOOKABLE_TIME_SLOTS.indexOf(a.time) - BOOKABLE_TIME_SLOTS.indexOf(b.time)),
+        );
       },
       error: () => {
         this.pendingRequestCount.set(0);
         this.stats.set({ todaysAppointments: 0, appointmentsChange: 'Unable to load' });
         this.bookingTrends.set([]);
       },
+    });
+  }
+
+  /** Opens/closes the notification dropdown, marking whatever's currently in it as seen so the badge clears. */
+  protected toggleNotifications(): void {
+    this.isNotificationsOpen = !this.isNotificationsOpen;
+    if (this.isNotificationsOpen) {
+      for (const appointment of this.recentConfirmed()) {
+        this.seenAppointmentIds.add(appointment.id);
+      }
+      this.saveSeenAppointmentIds();
+      this.unreadNotificationCount.set(0);
+    }
+  }
+
+  protected closeNotifications(): void {
+    this.isNotificationsOpen = false;
+  }
+
+  protected notificationText(appointment: Appointment): string {
+    return `${appointment.patientName} scheduled for ${appointment.time} on ${appointment.date}`;
+  }
+
+  /** Jump to the Medical Records page with this appointment's patient pre-selected. */
+  protected addRecordFor(appt: Appointment, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/records'], {
+      queryParams: { patientId: appt.patientId, patientName: appt.patientName },
     });
   }
 
@@ -254,6 +316,23 @@ export class Dashboard implements OnInit {
       percent: max > 0 ? Math.round((d.count / max) * 100) : 0,
       active: d.iso === todayIso,
     }));
+  }
+
+  private loadSeenAppointmentIds(): void {
+    try {
+      const raw = localStorage.getItem(SEEN_APPOINTMENTS_STORAGE_PREFIX + this.doctorId);
+      this.seenAppointmentIds = raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch {
+      this.seenAppointmentIds = new Set();
+    }
+  }
+
+  private saveSeenAppointmentIds(): void {
+    try {
+      localStorage.setItem(SEEN_APPOINTMENTS_STORAGE_PREFIX + this.doctorId, JSON.stringify([...this.seenAppointmentIds]));
+    } catch {
+      // localStorage unavailable (e.g. private browsing) — the badge just won't persist across reloads.
+    }
   }
 
   private toDoctor(record: DoctorRecord): Doctor {

@@ -1,8 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
-import { AppointmentService } from '../services/appointment.service';
+import { AppointmentService, DoctorDaySummary } from '../services/appointment.service';
 import { AuthService } from '../services/auth.service';
 import { getInitials } from '../shared/initials';
-import { BOOKABLE_TIME_SLOTS } from '../shared/time-slots';
 import { buildMonthGrid, CalendarCell, stripTime, toIsoDate } from '../shared/calendar-grid';
 
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error';
@@ -24,17 +23,15 @@ export class BookingModal implements OnInit {
   @Input() doctorRole = 'Cardiologist';
 
   @Output() closed = new EventEmitter<void>();
-  @Output() confirmed = new EventEmitter<{ doctorId: string; doctorName: string; date: string; time: string }>();
-
-  protected readonly timeSlots = BOOKABLE_TIME_SLOTS;
+  @Output() confirmed = new EventEmitter<{ doctorId: string; doctorName: string; date: string }>();
 
   // These are read/written from HttpClient subscribe callbacks (not just template events), so
   // they're signals — this app runs zoneless, and a plain field mutated outside a template-bound
   // event handler won't schedule a re-render.
-  protected readonly selectedTime = signal('');
-  protected readonly unavailableTimes = signal(new Set<string>());
   protected readonly submitState = signal<SubmitState>('idle');
   protected readonly submitError = signal('');
+  protected readonly daySummary = signal<DoctorDaySummary | null>(null);
+  protected readonly isLoadingDaySummary = signal(true);
 
   protected selectedDate = stripTime(new Date());
   protected viewYear = this.selectedDate.getFullYear();
@@ -50,7 +47,7 @@ export class BookingModal implements OnInit {
 
   ngOnInit(): void {
     this.buildCalendar();
-    this.refreshUnavailableTimes();
+    this.refreshDaySummary();
   }
 
   protected get monthLabel(): string {
@@ -63,6 +60,34 @@ export class BookingModal implements OnInit {
 
   protected get avatarInitials(): string {
     return getInitials(this.doctorName);
+  }
+
+  /** Whether this date can still be requested — fully booked or doctor-blocked days can't.
+   *  A failed availability check (summary === null after loading) doesn't block the request —
+   *  the backend still enforces capacity/blocks on submit either way. */
+  protected get canRequestDate(): boolean {
+    if (this.isLoadingDaySummary()) {
+      return false;
+    }
+    const summary = this.daySummary();
+    return !summary || (!summary.blockedAllDay && summary.remaining > 0);
+  }
+
+  protected get availabilityMessage(): string {
+    if (this.isLoadingDaySummary()) {
+      return 'Checking availability…';
+    }
+    const summary = this.daySummary();
+    if (!summary) {
+      return '';
+    }
+    if (summary.blockedAllDay) {
+      return `${this.doctorName} is unavailable on this date.`;
+    }
+    if (summary.remaining <= 0) {
+      return `${this.doctorName} is fully booked on this date — try another day.`;
+    }
+    return `${summary.remaining} of ${summary.maxPatientsPerDay} spot${summary.maxPatientsPerDay === 1 ? '' : 's'} left on this date.`;
   }
 
   protected prevMonth(): void {
@@ -88,9 +113,8 @@ export class BookingModal implements OnInit {
       return;
     }
     this.selectedDate = cell.date;
-    this.selectedTime.set('');
     this.buildCalendar();
-    this.refreshUnavailableTimes();
+    this.refreshDaySummary();
   }
 
   protected dayClasses(cell: CalendarCell): string {
@@ -107,34 +131,12 @@ export class BookingModal implements OnInit {
     return `${base} hover:bg-gray-100`;
   }
 
-  protected isSlotTaken(time: string): boolean {
-    return this.unavailableTimes().has(time);
-  }
-
-  selectTime(time: string) {
-    if (this.isSlotTaken(time)) {
-      return;
-    }
-    this.selectedTime.set(time);
-  }
-
-  protected slotClasses(time: string): string {
-    const base = 'py-2.5 rounded-xl font-medium transition text-sm';
-    if (this.isSlotTaken(time)) {
-      return `${base} border border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed line-through`;
-    }
-    return time === this.selectedTime()
-      ? `${base} border-2 border-[#0A3F35] bg-emerald-50 text-[#0A3F35] font-bold shadow-sm`
-      : `${base} border border-gray-200 text-gray-700 hover:border-[#0A3F35] hover:text-[#0A3F35]`;
-  }
-
   onClose() {
     this.closed.emit();
   }
 
   onConfirm() {
-    const time = this.selectedTime();
-    if (!time || this.submitState() === 'submitting') {
+    if (!this.canRequestDate || this.submitState() === 'submitting') {
       return;
     }
 
@@ -150,33 +152,32 @@ export class BookingModal implements OnInit {
     this.submitState.set('submitting');
     this.submitError.set('');
 
-    this.appointmentService.create({ patientId: patient.id, doctorId: this.doctorId, date, time }).subscribe({
+    this.appointmentService.create({ patientId: patient.id, doctorId: this.doctorId, date }).subscribe({
       next: () => {
         this.submitState.set('success');
-        this.confirmed.emit({ doctorId: this.doctorId, doctorName: this.doctorName, date, time });
+        this.confirmed.emit({ doctorId: this.doctorId, doctorName: this.doctorName, date });
       },
       error: (err) => {
         this.submitState.set('error');
         this.submitError.set(err?.error?.message || 'Could not send the appointment request. Please try again.');
-        // The failure may have been a just-taken slot — refresh so it greys out immediately.
-        this.refreshUnavailableTimes();
+        // The failure may have been a just-filled day — refresh so the message updates.
+        this.refreshDaySummary();
       },
     });
   }
 
-  private refreshUnavailableTimes(): void {
-    this.appointmentService.getUnavailableTimes(this.doctorId, toIsoDate(this.selectedDate)).subscribe({
-      next: (times) => {
-        const taken = new Set(times);
-        this.unavailableTimes.set(taken);
-        if (this.selectedTime() && taken.has(this.selectedTime())) {
-          this.selectedTime.set('');
-        }
+  private refreshDaySummary(): void {
+    this.isLoadingDaySummary.set(true);
+    this.appointmentService.getDaySummary(this.doctorId, toIsoDate(this.selectedDate)).subscribe({
+      next: (summary) => {
+        this.daySummary.set(summary);
+        this.isLoadingDaySummary.set(false);
       },
       error: () => {
-        // If we can't fetch what's taken, fall back to letting the user pick freely —
-        // the backend still rejects a double-booked slot on submit.
-        this.unavailableTimes.set(new Set());
+        // If we can't check availability, fall back to letting the request through —
+        // the backend still enforces capacity/blocks on submit.
+        this.daySummary.set(null);
+        this.isLoadingDaySummary.set(false);
       },
     });
   }

@@ -36,18 +36,25 @@
                 <div>
                   <h3 class="text-lg font-bold text-gray-900">{{ view.appointment.patientName }}</h3>
                   <p class="text-gray-500 text-sm mt-1">
-                    {{ formatDate(view.appointment.date) }} at <span class="font-semibold text-[#0A3F35]">{{ view.appointment.time }}</span>
+                    {{ formatDate(view.appointment.date) }}
+                    @if (view.appointment.time) {
+                      at <span class="font-semibold text-[#0A3F35]">{{ view.appointment.time }}</span>
+                    } @else {
+                      — <span class="font-semibold text-amber-600">awaiting a time from the front desk</span>
+                    }
                   </p>
                 </div>
 
                 @if (!view.isRejecting) {
                   <div class="flex gap-3 shrink-0">
-                    <button
-                      type="button"
-                      class="bg-[#0A3F35] text-white px-5 py-2 rounded-lg font-bold hover:bg-emerald-900 transition text-sm disabled:opacity-50"
-                      [disabled]="view.isSubmitting"
-                      (click)="accept(view)"
-                    >Accept</button>
+                    @if (view.appointment.time) {
+                      <button
+                        type="button"
+                        class="bg-[#0A3F35] text-white px-5 py-2 rounded-lg font-bold hover:bg-emerald-900 transition text-sm disabled:opacity-50"
+                        [disabled]="view.isSubmitting"
+                        (click)="accept(view)"
+                      >Accept</button>
+                    }
                     <button
                       type="button"
                       class="bg-white border border-red-200 text-red-600 px-5 py-2 rounded-lg font-bold hover:bg-red-50 transition text-sm disabled:opacity-50"

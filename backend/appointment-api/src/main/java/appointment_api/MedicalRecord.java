@@ -14,6 +14,9 @@ public class MedicalRecord {
     private String patientId;
     private String doctorId;
     private String doctorName;
+    private String weight;
+    private String bloodPressure;
+    private String heartRate;
     private String healthCondition;
     private String medicinesProvided;
     private String additionalNotes;
@@ -32,6 +35,15 @@ public class MedicalRecord {
 
     public String getDoctorName() { return doctorName; }
     public void setDoctorName(String doctorName) { this.doctorName = doctorName; }
+
+    public String getWeight() { return weight; }
+    public void setWeight(String weight) { this.weight = weight; }
+
+    public String getBloodPressure() { return bloodPressure; }
+    public void setBloodPressure(String bloodPressure) { this.bloodPressure = bloodPressure; }
+
+    public String getHeartRate() { return heartRate; }
+    public void setHeartRate(String heartRate) { this.heartRate = heartRate; }
 
     public String getHealthCondition() { return healthCondition; }
     public void setHealthCondition(String healthCondition) { this.healthCondition = healthCondition; }

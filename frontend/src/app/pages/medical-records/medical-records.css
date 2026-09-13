@@ -47,6 +47,8 @@
 /* Add record form */
 .record-form { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 16px; box-shadow: 0 8px 30px rgba(16, 24, 40, 0.07); padding: 24px; display: flex; flex-direction: column; }
 .record-form h3 { font-size: 16px; font-weight: 700; color: #0d3b2e; margin: 0 0 16px 0; }
+.vitals-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.vitals-row .field-label { display: block; }
 .field-label { font-size: 12.5px; font-weight: 600; color: #6b7570; margin: 14px 0 6px 0; }
 .field-label:first-of-type { margin-top: 0; }
 .record-form input, .record-form textarea { width: 100%; box-sizing: border-box; background: #ffffff; border: 1px solid #e3e6ea; border-radius: 10px; padding: 10px 14px; font-size: 14px; color: #12160f; font-family: inherit; resize: vertical; }
@@ -73,9 +75,11 @@
 .history-condition { font-size: 14.5px; font-weight: 700; color: #12160f; }
 .history-date { font-size: 12px; color: #8a938c; flex-shrink: 0; }
 .history-doctor { font-size: 12px; color: #6b7570; margin: 0 0 8px 0; font-style: italic; }
+.history-vitals { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 13px; color: #404944; margin: 0 0 6px 0; }
 .history-detail { font-size: 13.5px; color: #404944; margin: 4px 0 0 0; white-space: pre-line; }
 
 @media (max-width: 760px) {
   .workspace-grid { grid-template-columns: 1fr; }
+  .vitals-row { grid-template-columns: 1fr; }
   .patient-header-card { flex-wrap: wrap; }
 }

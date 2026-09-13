@@ -36,6 +36,9 @@ export class MedicalRecords implements OnInit {
   protected readonly recordsError = signal('');
 
   protected healthCondition = '';
+  protected weight = '';
+  protected bloodPressure = '';
+  protected heartRate = '';
   protected medicinesProvided = '';
   protected additionalNotes = '';
   protected readonly isSubmitting = signal(false);
@@ -125,6 +128,9 @@ export class MedicalRecords implements OnInit {
         patientId: patient.id,
         doctorId: doctor?.id ?? null,
         doctorName: doctor?.fullName ?? null,
+        weight: this.weight.trim() || null,
+        bloodPressure: this.bloodPressure.trim() || null,
+        heartRate: this.heartRate.trim() || null,
         healthCondition: this.healthCondition.trim(),
         medicinesProvided: this.medicinesProvided.trim() || null,
         additionalNotes: this.additionalNotes.trim() || null,
@@ -160,6 +166,9 @@ export class MedicalRecords implements OnInit {
 
   private resetForm(): void {
     this.healthCondition = '';
+    this.weight = '';
+    this.bloodPressure = '';
+    this.heartRate = '';
     this.medicinesProvided = '';
     this.additionalNotes = '';
     this.submitError.set('');

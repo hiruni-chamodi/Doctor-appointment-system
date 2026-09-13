@@ -77,6 +77,39 @@
         <form class="record-form" (ngSubmit)="submitRecord()">
           <h3>Add Visit Record</h3>
 
+          <div class="vitals-row">
+            <div>
+              <label class="field-label" for="weight">Weight</label>
+              <input
+                id="weight"
+                type="text"
+                name="weight"
+                [(ngModel)]="weight"
+                placeholder="e.g. 164 lbs"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="bloodPressure">Blood pressure</label>
+              <input
+                id="bloodPressure"
+                type="text"
+                name="bloodPressure"
+                [(ngModel)]="bloodPressure"
+                placeholder="e.g. 118/76 mmHg"
+              />
+            </div>
+            <div>
+              <label class="field-label" for="heartRate">Heart rate</label>
+              <input
+                id="heartRate"
+                type="text"
+                name="heartRate"
+                [(ngModel)]="heartRate"
+                placeholder="e.g. 68 bpm"
+              />
+            </div>
+          </div>
+
           <label class="field-label" for="healthCondition">Health condition / diagnosis</label>
           <input
             id="healthCondition"
@@ -136,6 +169,19 @@
                   </div>
                   @if (record.doctorName) {
                     <p class="history-doctor">Recorded by Dr. {{ record.doctorName }}</p>
+                  }
+                  @if (record.weight || record.bloodPressure || record.heartRate) {
+                    <div class="history-vitals">
+                      @if (record.weight) {
+                        <span><strong>Weight:</strong> {{ record.weight }}</span>
+                      }
+                      @if (record.bloodPressure) {
+                        <span><strong>BP:</strong> {{ record.bloodPressure }}</span>
+                      }
+                      @if (record.heartRate) {
+                        <span><strong>Heart rate:</strong> {{ record.heartRate }}</span>
+                      }
+                    </div>
                   }
                   @if (record.medicinesProvided) {
                     <p class="history-detail"><strong>Medicines:</strong> {{ record.medicinesProvided }}</p>

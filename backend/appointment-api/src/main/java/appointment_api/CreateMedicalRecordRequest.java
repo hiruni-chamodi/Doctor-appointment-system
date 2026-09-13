@@ -7,6 +7,9 @@ public record CreateMedicalRecordRequest(
         String patientId,
         String doctorId,
         String doctorName,
+        String weight,
+        String bloodPressure,
+        String heartRate,
         String healthCondition,
         String medicinesProvided,
         String additionalNotes

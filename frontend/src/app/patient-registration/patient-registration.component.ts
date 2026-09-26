@@ -13,6 +13,7 @@ export class PatientRegistrationComponent {
   firstName = '';
   lastName = '';
   email = '';
+  phoneNumber = '';
   password = '';
   role: UserRole = 'PATIENT';
   specialty = '';
@@ -32,6 +33,11 @@ export class PatientRegistrationComponent {
       return;
     }
 
+    if (this.role === 'PATIENT' && !this.phoneNumber.trim()) {
+      this.errorMessage = 'Please enter a phone number for SMS notifications.';
+      return;
+    }
+
     if (this.role === 'DOCTOR' && !this.specialty.trim()) {
       this.errorMessage = 'Please enter your specialty.';
       return;
@@ -41,7 +47,8 @@ export class PatientRegistrationComponent {
     this.isSubmitting = true;
 
     this.authService
-      .register(fullName, this.email, this.password, this.role, this.role === 'DOCTOR' ? this.specialty.trim() : undefined)
+      .register(fullName, this.email, this.password, this.role, this.phoneNumber.trim() || undefined,
+        this.role === 'DOCTOR' ? this.specialty.trim() : undefined)
       .subscribe({
         next: () => {
           this.isSubmitting = false;
@@ -67,6 +74,7 @@ export class PatientRegistrationComponent {
     this.firstName = '';
     this.lastName = '';
     this.email = '';
+    this.phoneNumber = '';
     this.password = '';
     this.specialty = '';
     this.role = 'PATIENT';

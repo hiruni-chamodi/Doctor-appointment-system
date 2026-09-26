@@ -27,6 +27,11 @@ public class AuthController {
                     .body(new ErrorResponse("Full name, email, password and role are required."));
         }
 
+            if (request.role() == Role.PATIENT && (request.phoneNumber() == null || request.phoneNumber().isBlank())) {
+                return ResponseEntity.badRequest()
+                    .body(new ErrorResponse("A phone number is required for patient accounts."));
+            }
+
         String normalizedEmail = request.email().trim().toLowerCase();
 
         if (userRepository.existsByEmail(normalizedEmail)) {
@@ -35,10 +40,15 @@ public class AuthController {
         }
 
         String passwordHash = passwordEncoder.encode(request.password());
-        User user = new User(request.fullName().trim(), normalizedEmail, passwordHash, request.role(), request.specialty());
+        User user = new User(request.fullName().trim(), normalizedEmail, passwordHash, request.role(),
+            blankToNull(request.phoneNumber()), request.specialty());
         User saved = userRepository.save(user);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.fromUser(saved));
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     @PostMapping("/login")

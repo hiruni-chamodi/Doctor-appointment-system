@@ -22,6 +22,8 @@ export class Settings implements OnInit {
 
   protected dailyStartTime = '';
   protected maxPatientsPerDay = 8;
+  protected profilePictureBase64: string | null = null;
+  protected profileInitial = 'D';
 
   private doctorId = '';
 
@@ -39,10 +41,12 @@ export class Settings implements OnInit {
     }
 
     this.doctorId = user.id;
+    this.profileInitial = user.fullName?.charAt(0).toUpperCase() || 'D';
     this.doctorService.getOne(user.id).subscribe({
       next: (doctor) => {
         this.dailyStartTime = doctor.dailyStartTime || this.timeSlots[0];
         this.maxPatientsPerDay = doctor.maxPatientsPerDay || 8;
+        this.profilePictureBase64 = doctor.profilePictureBase64;
         this.isLoading.set(false);
       },
       error: () => {
@@ -50,6 +54,32 @@ export class Settings implements OnInit {
         this.isLoading.set(false);
       },
     });
+  }
+
+  protected onProfilePictureSelected(event: Event): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.files?.length) {
+      return;
+    }
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.saveError.set('Please select an image file.');
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        this.profilePictureBase64 = reader.result;
+        this.saveError.set('');
+        this.saveSuccess.set(false);
+      }
+    };
+    reader.onerror = () => this.saveError.set('Unable to read that image.');
+    reader.readAsDataURL(file);
+    input.value = '';
   }
 
   protected save(): void {
@@ -65,6 +95,7 @@ export class Settings implements OnInit {
       .updateSettings(this.doctorId, {
         dailyStartTime: this.dailyStartTime,
         maxPatientsPerDay: this.maxPatientsPerDay,
+        profilePictureBase64: this.profilePictureBase64,
       })
       .subscribe({
         next: () => {

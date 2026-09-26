@@ -118,6 +118,17 @@
                       <div class="actions">
                         <button
                           type="button"
+                          class="notify"
+                          [disabled]="submitting() !== null"
+                          (click)="openNotification(appointment)"
+                          aria-label="Notify patient"
+                          title="Notify patient"
+                        >
+                          <span aria-hidden="true">&#128276;</span>
+                          Notify
+                        </button>
+                        <button
+                          type="button"
                           class="decline"
                           [disabled]="submitting() !== null"
                           (click)="cancel(appointment)"
@@ -135,4 +146,45 @@
       }
     }
   </div>
+
+  @if (notificationAppointment(); as appointment) {
+    <div class="modal-backdrop" role="presentation" (click)="closeNotification()">
+      <section class="notification-modal" role="dialog" aria-modal="true" aria-labelledby="notification-title" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <p class="modal-eyebrow">SMS notification</p>
+            <h2 id="notification-title">Notify {{ appointment.patientName }}</h2>
+          </div>
+          <button type="button" class="modal-close" (click)="closeNotification()" aria-label="Close notification dialog">&times;</button>
+        </div>
+
+        @if (notificationState() === 'sent') {
+          <p class="notification-success">SMS sent successfully to {{ appointment.patientName }}.</p>
+          <div class="modal-actions">
+            <button type="button" class="accept" (click)="closeNotification()">Done</button>
+          </div>
+        } @else {
+          <p class="modal-description">Send an update about the appointment on {{ formatDate(appointment.date) }}.</p>
+          <label class="message-label" for="patient-message">Message</label>
+          <textarea
+            id="patient-message"
+            [(ngModel)]="notificationMessage"
+            rows="5"
+            maxlength="320"
+            placeholder="Dr. Anuradha is running 30 minutes late."
+          ></textarea>
+          <p class="message-count">{{ notificationMessage.length }}/320</p>
+          @if (notificationError()) {
+            <p class="notification-error">{{ notificationError() }}</p>
+          }
+          <div class="modal-actions">
+            <button type="button" class="cancel-schedule" [disabled]="notificationState() === 'sending'" (click)="closeNotification()">Cancel</button>
+            <button type="button" class="accept" [disabled]="!notificationMessage.trim() || notificationState() === 'sending'" (click)="sendNotification()">
+              {{ notificationState() === 'sending' ? 'Sending…' : 'Send SMS' }}
+            </button>
+          </div>
+        }
+      </section>
+    </div>
+  }
 </div>

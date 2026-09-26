@@ -201,6 +201,17 @@ button:disabled {
   background: #fef2f2;
 }
 
+.notify {
+  background: #fff8e7;
+  border: 1px solid #f1d58d;
+  color: #8a5b08;
+  padding: 0.5rem 0.7rem;
+}
+
+.notify:hover:not(:disabled) {
+  background: #fff1c9;
+}
+
 .scheduler {
   align-items: center;
   display: flex;
@@ -226,6 +237,120 @@ button:disabled {
 
 .cancel-schedule:hover {
   background: #f9fafb;
+}
+
+.modal-backdrop {
+  align-items: center;
+  background: rgba(10, 30, 24, 0.42);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 20;
+}
+
+.notification-modal {
+  background: #ffffff;
+  border: 1px solid #d8e1dc;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(16, 24, 40, 0.2);
+  max-width: 500px;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.modal-header,
+.modal-actions {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-header {
+  border-bottom: 1px solid #edf1ef;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+}
+
+.modal-eyebrow {
+  color: #8a5b08;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+}
+
+.notification-modal h2 {
+  color: #0a3f35;
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.modal-close {
+  background: transparent;
+  border: 0;
+  color: #6b7570;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+.modal-description,
+.message-count {
+  color: #6b7570;
+  font-size: 0.875rem;
+}
+
+.message-label {
+  color: #25302d;
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin: 1rem 0 0.4rem;
+}
+
+.notification-modal textarea {
+  border: 1px solid #cfdad4;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #18221f;
+  font: inherit;
+  min-height: 120px;
+  padding: 0.75rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.notification-modal textarea:focus {
+  border-color: #0a3f35;
+  outline: 2px solid rgba(10, 63, 53, 0.15);
+}
+
+.message-count {
+  font-size: 0.75rem;
+  margin: 0.35rem 0 1rem;
+  text-align: right;
+}
+
+.notification-error {
+  color: #b3261e;
+  font-size: 0.8125rem;
+  margin: 0 0 1rem;
+}
+
+.notification-success {
+  background: #ecf8f0;
+  border-radius: 8px;
+  color: #146c43;
+  padding: 1rem;
+}
+
+.modal-actions {
+  justify-content: flex-end;
+  margin-top: 1.25rem;
 }
 
 @media (max-width: 900px) {

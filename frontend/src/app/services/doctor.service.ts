@@ -8,11 +8,13 @@ export interface Doctor {
   specialty: string | null;
   dailyStartTime: string | null;
   maxPatientsPerDay: number | null;
+  profilePictureBase64: string | null;
 }
 
 export interface UpdateDoctorSettingsPayload {
   dailyStartTime: string;
   maxPatientsPerDay: number;
+  profilePictureBase64: string | null;
 }
 
 const DOCTORS_API_URL = 'http://localhost:8081/api/doctors';

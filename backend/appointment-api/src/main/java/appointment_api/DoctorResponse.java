@@ -5,7 +5,8 @@ public record DoctorResponse(
         String fullName,
         String specialty,
         String dailyStartTime,
-        Integer maxPatientsPerDay
+        Integer maxPatientsPerDay,
+        String profilePictureBase64
 ) {
     public static DoctorResponse fromUser(User user) {
         return new DoctorResponse(
@@ -13,7 +14,8 @@ public record DoctorResponse(
                 user.getFullName(),
                 user.getSpecialty(),
                 user.getDailyStartTime(),
-                user.getMaxPatientsPerDay()
+                user.getMaxPatientsPerDay(),
+                user.getProfilePictureBase64()
         );
     }
 }

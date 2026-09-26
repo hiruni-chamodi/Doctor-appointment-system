@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Appointment, AppointmentService } from '../services/appointment.service';
+import { AdminNotificationService } from '../services/admin-notification.service';
 import { DoctorEventService } from '../services/doctor-event.service';
 import { BOOKABLE_TIME_SLOTS } from '../shared/time-slots';
 
@@ -29,10 +30,15 @@ export class AdminDashboard implements OnInit {
   protected readonly blockedTimesForScheduling = signal(new Set<string>());
   protected readonly startTimeForScheduling = signal<string | null>(null);
   protected selectedTime = '';
+  protected readonly notificationAppointment = signal<Appointment | null>(null);
+  protected notificationMessage = '';
+  protected readonly notificationState = signal<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  protected readonly notificationError = signal('');
 
   constructor(
     private appointmentService: AppointmentService,
     private doctorEventService: DoctorEventService,
+    private adminNotificationService: AdminNotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -155,6 +161,40 @@ export class AdminDashboard implements OnInit {
 
   protected cancel(appointment: Appointment): void {
     this.updateStatus(appointment, 'CANCELED');
+  }
+
+  protected openNotification(appointment: Appointment): void {
+    this.notificationAppointment.set(appointment);
+    this.notificationMessage = `Dr. ${appointment.doctorName.replace(/^Dr\.\s*/i, '')} is unavailable for your appointment. Please contact the clinic for an update.`;
+    this.notificationState.set('idle');
+    this.notificationError.set('');
+  }
+
+  protected closeNotification(): void {
+    if (this.notificationState() === 'sending') {
+      return;
+    }
+    this.notificationAppointment.set(null);
+    this.notificationMessage = '';
+    this.notificationError.set('');
+  }
+
+  protected sendNotification(): void {
+    const appointment = this.notificationAppointment();
+    const message = this.notificationMessage.trim();
+    if (!appointment || !message || this.notificationState() === 'sending') {
+      return;
+    }
+
+    this.notificationState.set('sending');
+    this.notificationError.set('');
+    this.adminNotificationService.notifyPatient({ appointmentId: appointment.id, message }).subscribe({
+      next: () => this.notificationState.set('sent'),
+      error: (error) => {
+        this.notificationState.set('error');
+        this.notificationError.set(error?.error?.message || 'Unable to send the SMS right now.');
+      },
+    });
   }
 
   protected formatDate(isoDate: string): string {

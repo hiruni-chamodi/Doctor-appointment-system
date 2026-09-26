@@ -8,6 +8,28 @@
     <div class="state-card error">{{ loadError() }}</div>
   } @else {
     <form class="settings-form" (ngSubmit)="save()">
+      <h3>Profile picture</h3>
+      <input
+        #profilePictureInput
+        class="profile-picture-input"
+        type="file"
+        accept="image/*"
+        (change)="onProfilePictureSelected($event)"
+      />
+      <button
+        type="button"
+        class="profile-picture-button"
+        (click)="profilePictureInput.click()"
+        aria-label="Change profile picture"
+      >
+        @if (profilePictureBase64) {
+          <img [src]="profilePictureBase64" alt="Doctor profile" />
+        } @else {
+          <span>{{ profileInitial }}</span>
+        }
+        <span class="profile-picture-hint">Click to upload</span>
+      </button>
+
       <h3>Scheduling</h3>
 
       <label class="field-label" for="dailyStartTime">Daily start time</label>

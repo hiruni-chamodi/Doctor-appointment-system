@@ -53,8 +53,13 @@ public class DoctorController {
         User doctor = found.get();
         doctor.setDailyStartTime(request.dailyStartTime());
         doctor.setMaxPatientsPerDay(request.maxPatientsPerDay());
+        doctor.setProfilePictureBase64(blankToNull(request.profilePictureBase64()));
         User saved = userRepository.save(doctor);
         return ResponseEntity.ok(DoctorResponse.fromUser(saved));
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 
     /** The doctor's start time / patient capacity for one specific date, if they've set one — otherwise 404. */

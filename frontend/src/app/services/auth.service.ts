@@ -9,6 +9,7 @@ export interface AuthUser {
   fullName: string;
   email: string;
   role: UserRole;
+  phoneNumber?: string | null;
   specialty?: string | null;
 }
 
@@ -26,9 +27,10 @@ export class AuthService {
     email: string,
     password: string,
     role: UserRole,
+    phoneNumber?: string,
     specialty?: string,
   ): Observable<AuthUser> {
-    return this.http.post<AuthUser>(`${API_BASE}/register`, { fullName, email, password, role, specialty });
+    return this.http.post<AuthUser>(`${API_BASE}/register`, { fullName, email, password, role, phoneNumber, specialty });
   }
 
   login(email: string, password: string): Observable<AuthUser> {

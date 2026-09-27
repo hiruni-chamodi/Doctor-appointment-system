@@ -103,8 +103,12 @@ public class AppointmentController {
     }
 
     @GetMapping("/patient/{patientId}")
-    public List<Appointment> getAppointmentsForPatient(@PathVariable String patientId) {
-        return appointmentRepository.findByPatientId(patientId);
+    public ResponseEntity<?> getAppointmentsForPatient(@PathVariable String patientId, jakarta.servlet.http.HttpServletRequest request) {
+        User authUser = (User) request.getAttribute("authenticatedUser");
+        if (authUser != null && authUser.getRole() == Role.PATIENT && !authUser.getId().equals(patientId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("You can only view your own appointments."));
+        }
+        return ResponseEntity.ok(appointmentRepository.findByPatientId(patientId));
     }
 
     @GetMapping("/all")

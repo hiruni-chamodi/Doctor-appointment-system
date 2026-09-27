@@ -27,7 +27,11 @@ public class PatientController {
     private UserRepository userRepository;
 
     @GetMapping
-    public List<PatientRecordResponse> getAllPatients() {
+    public List<PatientRecordResponse> getAllPatients(jakarta.servlet.http.HttpServletRequest request) {
+        User authUser = (User) request.getAttribute("authenticatedUser");
+        if (authUser != null && authUser.getRole() == Role.PATIENT) {
+            return List.of(toPatientRecord(authUser));
+        }
         return userRepository.findByRole(Role.PATIENT).stream()
                 .map(this::toPatientRecord)
                 .toList();

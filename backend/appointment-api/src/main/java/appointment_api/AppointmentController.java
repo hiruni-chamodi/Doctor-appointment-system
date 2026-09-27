@@ -35,7 +35,7 @@ public class AppointmentController {
     private DoctorDayOverrideRepository doctorDayOverrideRepository;
 
     @PostMapping
-    public ResponseEntity<?> createAppointment(@RequestBody CreateAppointmentRequest request) {
+    public synchronized ResponseEntity<?> createAppointment(@RequestBody CreateAppointmentRequest request) {
         if (request.patientId() == null || request.patientId().isBlank()
                 || request.doctorId() == null || request.doctorId().isBlank()
                 || request.date() == null || request.date().isBlank()) {
@@ -171,7 +171,7 @@ public class AppointmentController {
 
     /** Admin assigns the actual time to a pending request that was made without one. */
     @PatchMapping("/{id}/schedule")
-    public ResponseEntity<?> scheduleAppointment(@PathVariable String id, @RequestBody ScheduleAppointmentRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
+    public synchronized ResponseEntity<?> scheduleAppointment(@PathVariable String id, @RequestBody ScheduleAppointmentRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
         User authUser = (User) httpRequest.getAttribute("authenticatedUser");
         if (authUser == null || (authUser.getRole() != Role.ADMIN && authUser.getRole() != Role.RECEPTIONIST)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Only Admins and Receptionists can schedule appointments."));
@@ -226,7 +226,7 @@ public class AppointmentController {
     }
 
     @PatchMapping("/{id}/accept")
-    public ResponseEntity<?> acceptAppointment(@PathVariable String id, jakarta.servlet.http.HttpServletRequest httpRequest) {
+    public synchronized ResponseEntity<?> acceptAppointment(@PathVariable String id, jakarta.servlet.http.HttpServletRequest httpRequest) {
         Optional<Appointment> found = appointmentRepository.findById(id);
         if (found.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Appointment not found."));

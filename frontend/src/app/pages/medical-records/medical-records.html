@@ -74,81 +74,83 @@
 
       <div class="workspace-grid">
         <!-- Add record form -->
-        <form class="record-form" (ngSubmit)="submitRecord()">
-          <h3>Add Visit Record</h3>
+        @if (isDoctor()) {
+          <form class="record-form" (ngSubmit)="submitRecord()">
+            <h3>Add Visit Record</h3>
 
-          <div class="vitals-row">
-            <div>
-              <label class="field-label" for="weight">Weight</label>
-              <input
-                id="weight"
-                type="text"
-                name="weight"
-                [(ngModel)]="weight"
-                placeholder="e.g. 164 lbs"
-              />
+            <div class="vitals-row">
+              <div>
+                <label class="field-label" for="weight">Weight</label>
+                <input
+                  id="weight"
+                  type="text"
+                  name="weight"
+                  [(ngModel)]="weight"
+                  placeholder="e.g. 164 lbs"
+                />
+              </div>
+              <div>
+                <label class="field-label" for="bloodPressure">Blood pressure</label>
+                <input
+                  id="bloodPressure"
+                  type="text"
+                  name="bloodPressure"
+                  [(ngModel)]="bloodPressure"
+                  placeholder="e.g. 118/76 mmHg"
+                />
+              </div>
+              <div>
+                <label class="field-label" for="heartRate">Heart rate</label>
+                <input
+                  id="heartRate"
+                  type="text"
+                  name="heartRate"
+                  [(ngModel)]="heartRate"
+                  placeholder="e.g. 68 bpm"
+                />
+              </div>
             </div>
-            <div>
-              <label class="field-label" for="bloodPressure">Blood pressure</label>
-              <input
-                id="bloodPressure"
-                type="text"
-                name="bloodPressure"
-                [(ngModel)]="bloodPressure"
-                placeholder="e.g. 118/76 mmHg"
-              />
-            </div>
-            <div>
-              <label class="field-label" for="heartRate">Heart rate</label>
-              <input
-                id="heartRate"
-                type="text"
-                name="heartRate"
-                [(ngModel)]="heartRate"
-                placeholder="e.g. 68 bpm"
-              />
-            </div>
-          </div>
 
-          <label class="field-label" for="healthCondition">Health condition / diagnosis</label>
-          <input
-            id="healthCondition"
-            type="text"
-            name="healthCondition"
-            [(ngModel)]="healthCondition"
-            placeholder="e.g. Seasonal flu, mild dehydration"
-            required
-          />
+            <label class="field-label" for="healthCondition">Health condition / diagnosis</label>
+            <input
+              id="healthCondition"
+              type="text"
+              name="healthCondition"
+              [(ngModel)]="healthCondition"
+              placeholder="e.g. Seasonal flu, mild dehydration"
+              required
+            />
 
-          <label class="field-label" for="medicinesProvided">Medicines provided</label>
-          <textarea
-            id="medicinesProvided"
-            name="medicinesProvided"
-            rows="3"
-            [(ngModel)]="medicinesProvided"
-            placeholder="e.g. Paracetamol 500mg – twice daily for 5 days"
-          ></textarea>
+            <label class="field-label" for="medicinesProvided">Medicines provided</label>
+            <textarea
+              id="medicinesProvided"
+              name="medicinesProvided"
+              rows="3"
+              [(ngModel)]="medicinesProvided"
+              placeholder="e.g. Paracetamol 500mg – twice daily for 5 days"
+            ></textarea>
 
-          <label class="field-label" for="additionalNotes">Additional notes</label>
-          <textarea
-            id="additionalNotes"
-            name="additionalNotes"
-            rows="3"
-            [(ngModel)]="additionalNotes"
-            placeholder="Anything else the patient should know"
-          ></textarea>
+            <label class="field-label" for="additionalNotes">Additional notes</label>
+            <textarea
+              id="additionalNotes"
+              name="additionalNotes"
+              rows="3"
+              [(ngModel)]="additionalNotes"
+              placeholder="Anything else the patient should know"
+            ></textarea>
 
-          @if (submitError()) {
-            <p class="form-message error">{{ submitError() }}</p>
-          }
-          @if (submitSuccess()) {
-            <p class="form-message success">Record saved. The patient can now see it in their Medical Records tab.</p>
-          }
+            @if (submitError()) {
+              <p class="form-message error">{{ submitError() }}</p>
+            }
+            @if (submitSuccess()) {
+              <p class="form-message success">Record saved. The patient can now see it in their Medical Records tab.</p>
+            }
 
-          <button type="submit" class="submit-btn" [disabled]="!healthCondition.trim() || isSubmitting()">
-            {{ isSubmitting() ? 'Saving…' : 'Save Record' }}
-          </button>
-        </form>
+            <button type="submit" class="submit-btn" [disabled]="!healthCondition.trim() || isSubmitting()">
+              {{ isSubmitting() ? 'Saving…' : 'Save Record' }}
+            </button>
+          </form>
+        }
 
         <!-- History -->
         <div class="record-history">

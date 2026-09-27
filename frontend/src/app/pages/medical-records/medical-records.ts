@@ -44,6 +44,7 @@ export class MedicalRecords implements OnInit {
   protected readonly isSubmitting = signal(false);
   protected readonly submitError = signal('');
   protected readonly submitSuccess = signal(false);
+  protected readonly isDoctor = signal(false);
 
   constructor(
     private http: HttpClient,
@@ -53,6 +54,9 @@ export class MedicalRecords implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUser();
+    this.isDoctor.set(user?.role === 'DOCTOR');
+
     this.http.get<PatientSummary[]>(PATIENTS_API_URL).subscribe({
       next: (patients) => {
         const sorted = [...patients].sort((a, b) => a.fullName.localeCompare(b.fullName));

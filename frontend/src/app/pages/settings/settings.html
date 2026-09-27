@@ -1,0 +1,66 @@
+<div class="settings-page">
+  <h1>Settings</h1>
+  <p class="subtitle">Set your daily start time and how many patients you can see per day.</p>
+
+  @if (isLoading()) {
+    <div class="state-card">Loading your settings…</div>
+  } @else if (loadError()) {
+    <div class="state-card error">{{ loadError() }}</div>
+  } @else {
+    <form class="settings-form" (ngSubmit)="save()">
+      <h3>Profile picture</h3>
+      <input
+        #profilePictureInput
+        class="profile-picture-input"
+        type="file"
+        accept="image/*"
+        (change)="onProfilePictureSelected($event)"
+      />
+      <button
+        type="button"
+        class="profile-picture-button"
+        (click)="profilePictureInput.click()"
+        aria-label="Change profile picture"
+      >
+        @if (profilePictureBase64) {
+          <img [src]="profilePictureBase64" alt="Doctor profile" />
+        } @else {
+          <span>{{ profileInitial }}</span>
+        }
+        <span class="profile-picture-hint">Click to upload</span>
+      </button>
+
+      <h3>Scheduling</h3>
+
+      <label class="field-label" for="dailyStartTime">Daily start time</label>
+      <select id="dailyStartTime" name="dailyStartTime" [(ngModel)]="dailyStartTime">
+        @for (slot of timeSlots; track slot) {
+          <option [value]="slot">{{ slot }}</option>
+        }
+      </select>
+      <p class="field-hint">The clinic desk won't assign patients to a time earlier than this.</p>
+
+      <label class="field-label" for="maxPatientsPerDay">Max patients per day</label>
+      <input
+        id="maxPatientsPerDay"
+        name="maxPatientsPerDay"
+        type="number"
+        min="1"
+        max="8"
+        [(ngModel)]="maxPatientsPerDay"
+      />
+      <p class="field-hint">Once this many appointments are booked for a day, you'll show as fully booked and patients can't request that date.</p>
+
+      @if (saveError()) {
+        <p class="form-message error">{{ saveError() }}</p>
+      }
+      @if (saveSuccess()) {
+        <p class="form-message success">Settings saved.</p>
+      }
+
+      <button type="submit" class="save-btn" [disabled]="!dailyStartTime || maxPatientsPerDay < 1 || isSaving()">
+        {{ isSaving() ? 'Saving…' : 'Save Settings' }}
+      </button>
+    </form>
+  }
+</div>

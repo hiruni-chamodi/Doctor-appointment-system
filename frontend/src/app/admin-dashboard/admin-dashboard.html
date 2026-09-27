@@ -1,0 +1,190 @@
+<div class="min-h-screen bg-[#eaf3ee] p-8 lg:p-12 font-sans">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-4xl font-bold text-[#0A3F35] mb-2">Admin Dashboard</h1>
+      <p class="text-gray-500 text-lg">Manage clinic operations and appointments.</p>
+    </div>
+
+    @if (!isLoading() && !loadError()) {
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span>Registered Patients (Clinic)</span>
+          <strong>{{ registeredPatients }}</strong>
+          <small>Total active patients in the system</small>
+        </div>
+        <div class="stat-card">
+          <span>Doctors on Shift</span>
+          <strong>{{ doctorsOnShift }}</strong>
+          <small>Doctors with scheduled appointments</small>
+        </div>
+        <div class="stat-card">
+          <span>Patient Registrations (Pending)</span>
+          <strong>{{ pendingRequests }}</strong>
+          <small>New requests to be verified</small>
+        </div>
+        <div class="stat-card">
+          <span>Pending Requests (All Doctors)</span>
+          <strong>{{ pendingRequests }}</strong>
+          <small>Total requests across all departments</small>
+        </div>
+      </div>
+    }
+
+    @if (isLoading()) {
+      <div class="state-card">Loading appointments…</div>
+    } @else if (loadError()) {
+      <div class="state-card error">{{ loadError() }}</div>
+    } @else {
+      <div class="queue-heading">
+        <div class="view-toggle">
+          <button type="button" [class.active]="viewMode() === 'pending'" (click)="setViewMode('pending')">Pending Requests</button>
+          <button type="button" [class.active]="viewMode() === 'all'" (click)="setViewMode('all')">All Appointments</button>
+        </div>
+        <div class="filters">
+          <select [(ngModel)]="departmentFilter" aria-label="Filter by department">
+            <option value="">Filter by department...</option>
+            @for (department of departments; track department) {
+              <option [value]="department.toLowerCase()">{{ department }}</option>
+            }
+          </select>
+          <input [(ngModel)]="doctorFilter" type="search" placeholder="Dr. doctor" aria-label="Filter by doctor" />
+        </div>
+      </div>
+
+      @if (filteredAppointments.length === 0) {
+        <div class="state-card">
+          {{ viewMode() === 'pending' ? 'No pending appointments right now.' : 'No appointments found.' }}
+        </div>
+      } @else {
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Req. Date</th>
+                <th>Patient</th>
+                <th>Appt. Date</th>
+                <th>Time</th>
+                <th>Dr. Requested</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Admin Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (appointment of filteredAppointments; track appointment.id) {
+                <tr>
+                  <td>{{ formatDate(appointment.createdAt.slice(0, 10)) }}</td>
+                  <td class="strong">{{ appointment.patientName }}</td>
+                  <td>{{ formatDate(appointment.date) }}</td>
+                  <td>{{ appointment.time || '—' }}</td>
+                  <td>{{ appointment.doctorName }}</td>
+                  <td>{{ appointment.doctorSpecialty || 'General Practice' }}</td>
+                  <td><span class="status" [class]="appointment.status.toLowerCase()">{{ statusLabel(appointment.status) }}</span></td>
+                  <td>
+                    @if (schedulingId() === appointment.id) {
+                      <div class="scheduler">
+                        <select [(ngModel)]="selectedTime" aria-label="Choose a time to assign">
+                          <option value="" disabled>Choose a time…</option>
+                          @for (slot of timeSlots; track slot) {
+                            <option [value]="slot" [disabled]="isTimeBlocked(slot)">
+                              {{ slot }}{{ isBeforeStartTime(slot) ? ' (before start)' : (isTimeBlocked(slot) ? ' (unavailable)' : '') }}
+                            </option>
+                          }
+                        </select>
+                        <button
+                          type="button"
+                          class="accept"
+                          [disabled]="!selectedTime || submitting() !== null"
+                          (click)="confirmSchedule(appointment)"
+                        >Confirm</button>
+                        <button type="button" class="cancel-schedule" (click)="closeScheduler()">Cancel</button>
+                      </div>
+                    } @else if (appointment.status === 'PENDING') {
+                      <div class="actions">
+                        <button
+                          type="button"
+                          class="accept"
+                          [disabled]="submitting() !== null"
+                          (click)="openScheduler(appointment)"
+                        >Schedule</button>
+                        <button
+                          type="button"
+                          class="decline"
+                          [disabled]="submitting() !== null"
+                          (click)="decline(appointment)"
+                        >Decline</button>
+                      </div>
+                    } @else if (appointment.status === 'CONFIRMED') {
+                      <div class="actions">
+                        <button
+                          type="button"
+                          class="notify"
+                          [disabled]="submitting() !== null"
+                          (click)="openNotification(appointment)"
+                          aria-label="Notify patient"
+                          title="Notify patient"
+                        >
+                          <span aria-hidden="true">&#128276;</span>
+                          Notify
+                        </button>
+                        <button
+                          type="button"
+                          class="decline"
+                          [disabled]="submitting() !== null"
+                          (click)="cancel(appointment)"
+                        >Cancel</button>
+                      </div>
+                    } @else {
+                      <span class="no-action">—</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  </div>
+
+  @if (notificationAppointment(); as appointment) {
+    <div class="modal-backdrop" role="presentation" (click)="closeNotification()">
+      <section class="notification-modal" role="dialog" aria-modal="true" aria-labelledby="notification-title" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <p class="modal-eyebrow">SMS notification</p>
+            <h2 id="notification-title">Notify {{ appointment.patientName }}</h2>
+          </div>
+          <button type="button" class="modal-close" (click)="closeNotification()" aria-label="Close notification dialog">&times;</button>
+        </div>
+
+        @if (notificationState() === 'sent') {
+          <p class="notification-success">SMS sent successfully to {{ appointment.patientName }}.</p>
+          <div class="modal-actions">
+            <button type="button" class="accept" (click)="closeNotification()">Done</button>
+          </div>
+        } @else {
+          <p class="modal-description">Send an update about the appointment on {{ formatDate(appointment.date) }}.</p>
+          <label class="message-label" for="patient-message">Message</label>
+          <textarea
+            id="patient-message"
+            [(ngModel)]="notificationMessage"
+            rows="5"
+            maxlength="320"
+            placeholder="Dr. Anuradha is running 30 minutes late."
+          ></textarea>
+          <p class="message-count">{{ notificationMessage.length }}/320</p>
+          @if (notificationError()) {
+            <p class="notification-error">{{ notificationError() }}</p>
+          }
+          <div class="modal-actions">
+            <button type="button" class="cancel-schedule" [disabled]="notificationState() === 'sending'" (click)="closeNotification()">Cancel</button>
+            <button type="button" class="accept" [disabled]="!notificationMessage.trim() || notificationState() === 'sending'" (click)="sendNotification()">
+              {{ notificationState() === 'sending' ? 'Sending…' : 'Send SMS' }}
+            </button>
+          </div>
+        }
+      </section>
+    </div>
+  }
+</div>

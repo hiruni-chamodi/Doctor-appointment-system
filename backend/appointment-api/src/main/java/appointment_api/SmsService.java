@@ -40,11 +40,18 @@ public class SmsService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
+        String formattedNumber = recipientNumber;
+        if (formattedNumber.startsWith("0")) {
+            formattedNumber = "94" + formattedNumber.substring(1);
+        } else if (formattedNumber.startsWith("+")) {
+            formattedNumber = formattedNumber.substring(1);
+        }
+
         Map<String, String> requestBody = Map.of(
                 "user_id", userId,
                 "api_key", apiKey,
                 "sender_id", senderId,
-                "to", recipientNumber,
+                "to", formattedNumber,
                 "message", messageBody
         );
 

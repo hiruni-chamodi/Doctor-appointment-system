@@ -34,7 +34,7 @@ export class Settings implements OnInit {
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
-    if (!user || (user.role !== 'DOCTOR' && user.role !== 'ADMIN')) {
+    if (!user || user.role !== 'DOCTOR') {
       this.loadError.set('Only a doctor account has scheduling settings.');
       this.isLoading.set(false);
       return;

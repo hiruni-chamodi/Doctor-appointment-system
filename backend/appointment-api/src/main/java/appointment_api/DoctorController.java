@@ -37,7 +37,12 @@ public class DoctorController {
 
     /** Lets a doctor set their standing daily start time and how many patients they'll see per day. */
     @PutMapping("/{id}/settings")
-    public ResponseEntity<?> updateSettings(@PathVariable String id, @RequestBody UpdateDoctorSettingsRequest request) {
+    public ResponseEntity<?> updateSettings(@PathVariable String id, @RequestBody UpdateDoctorSettingsRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser == null || authUser.getRole() != Role.DOCTOR || !authUser.getId().equals(id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Not authorized to update these settings."));
+        }
+
         if (request.dailyStartTime() == null || request.dailyStartTime().isBlank()) {
             return ResponseEntity.badRequest().body(new ErrorResponse("A daily start time is required."));
         }
@@ -76,8 +81,14 @@ public class DoctorController {
     public ResponseEntity<?> upsertDayOverride(
             @PathVariable String id,
             @PathVariable String date,
-            @RequestBody UpsertDayOverrideRequest request
+            @RequestBody UpsertDayOverrideRequest request,
+            jakarta.servlet.http.HttpServletRequest httpRequest
     ) {
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser == null || authUser.getRole() != Role.DOCTOR || !authUser.getId().equals(id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Not authorized to update these settings."));
+        }
+
         if (request.startTime() == null || request.startTime().isBlank()) {
             return ResponseEntity.badRequest().body(new ErrorResponse("A start time is required."));
         }
@@ -101,7 +112,12 @@ public class DoctorController {
 
     /** Removes a date's override, reverting it to the doctor's standing default. */
     @DeleteMapping("/{id}/day-overrides/{date}")
-    public ResponseEntity<?> deleteDayOverride(@PathVariable String id, @PathVariable String date) {
+    public ResponseEntity<?> deleteDayOverride(@PathVariable String id, @PathVariable String date, jakarta.servlet.http.HttpServletRequest httpRequest) {
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser == null || authUser.getRole() != Role.DOCTOR || !authUser.getId().equals(id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Not authorized to delete these settings."));
+        }
+
         doctorDayOverrideRepository.findByDoctorIdAndDate(id, date)
                 .ifPresent(override -> doctorDayOverrideRepository.deleteById(override.getId()));
         return ResponseEntity.noContent().build();

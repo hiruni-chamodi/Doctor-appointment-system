@@ -23,7 +23,12 @@ public class AdminUserController {
     private SmsService smsService;
 
     @PostMapping("/add-patient")
-    public ResponseEntity<?> addPatient(@RequestBody AddPatientRequest request) {
+    public ResponseEntity<?> addPatient(@RequestBody AddPatientRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser.getRole() != Role.ADMIN && authUser.getRole() != Role.RECEPTIONIST) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Only Admins and Receptionists can add patients."));
+        }
+
         if (request.fullName() == null || request.fullName().isBlank()
                 || request.phoneNumber() == null || request.phoneNumber().isBlank()) {
             return ResponseEntity.badRequest()

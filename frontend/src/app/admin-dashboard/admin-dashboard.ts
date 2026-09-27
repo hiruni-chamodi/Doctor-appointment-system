@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Appointment, AppointmentService } from '../services/appointment.service';
 import { AdminNotificationService } from '../services/admin-notification.service';
+import { AdminUserService } from '../services/admin-user.service';
 import { DoctorEventService } from '../services/doctor-event.service';
 import { BOOKABLE_TIME_SLOTS } from '../shared/time-slots';
 
@@ -35,10 +36,17 @@ export class AdminDashboard implements OnInit {
   protected readonly notificationState = signal<'idle' | 'sending' | 'sent' | 'error'>('idle');
   protected readonly notificationError = signal('');
 
+  protected showAddPatient = signal(false);
+  protected newPatientName = '';
+  protected newPatientPhone = '';
+  protected addPatientError = signal('');
+  protected addPatientSuccess = signal(false);
+
   constructor(
     private appointmentService: AppointmentService,
     private doctorEventService: DoctorEventService,
     private adminNotificationService: AdminNotificationService,
+    private adminUserService: AdminUserService,
   ) {}
 
   ngOnInit(): void {
@@ -242,5 +250,42 @@ export class AdminDashboard implements OnInit {
 
   private mergeBlockedTimes(times: string[]): void {
     this.blockedTimesForScheduling.update((current) => new Set([...current, ...times]));
+  }
+
+  protected openAddPatient(): void {
+    this.showAddPatient.set(true);
+    this.newPatientName = '';
+    this.newPatientPhone = '';
+    this.addPatientError.set('');
+    this.addPatientSuccess.set(false);
+  }
+
+  protected closeAddPatient(): void {
+    if (this.submitting() === 'add-patient') return;
+    this.showAddPatient.set(false);
+  }
+
+  protected submitAddPatient(): void {
+    if (!this.newPatientName.trim() || !this.newPatientPhone.trim()) {
+      this.addPatientError.set('Name and phone number are required.');
+      return;
+    }
+    if (this.submitting() === 'add-patient') return;
+
+    this.submitting.set('add-patient');
+    this.addPatientError.set('');
+    this.adminUserService.addPatient({
+      fullName: this.newPatientName,
+      phoneNumber: this.newPatientPhone
+    }).subscribe({
+      next: () => {
+        this.addPatientSuccess.set(true);
+        this.submitting.set(null);
+      },
+      error: (e) => {
+        this.addPatientError.set(e?.error?.message || 'Failed to add patient.');
+        this.submitting.set(null);
+      }
+    });
   }
 }

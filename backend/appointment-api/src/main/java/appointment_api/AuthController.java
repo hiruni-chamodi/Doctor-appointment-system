@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -46,6 +47,7 @@ public class AuthController {
         String passwordHash = passwordEncoder.encode(request.password());
         User user = new User(request.fullName().trim(), normalizedEmail, passwordHash, request.role(),
             blankToNull(request.phoneNumber()), request.specialty());
+        user.setToken(UUID.randomUUID().toString());
         User saved = userRepository.save(user);
 
         if (request.role() == Role.PATIENT && saved.getPhoneNumber() != null) {
@@ -83,7 +85,11 @@ public class AuthController {
 
         return userOpt
                 .filter(user -> passwordEncoder.matches(request.password(), user.getPasswordHash()))
-                .<ResponseEntity<?>>map(user -> ResponseEntity.ok(UserResponse.fromUser(user)))
+                .<ResponseEntity<?>>map(user -> {
+                    user.setToken(UUID.randomUUID().toString());
+                    userRepository.save(user);
+                    return ResponseEntity.ok(UserResponse.fromUser(user));
+                })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new ErrorResponse("Invalid email/name or password.")));
     }

@@ -26,8 +26,12 @@ public class MedicalRecordController {
     private UserRepository userRepository;
 
     @GetMapping("/patient/{patientId}")
-    public List<MedicalRecord> getPatientRecords(@PathVariable String patientId) {
-        return medicalRecordRepository.findByPatientIdOrderByDateRecordedDesc(patientId);
+    public ResponseEntity<?> getPatientRecords(@PathVariable String patientId, jakarta.servlet.http.HttpServletRequest request) {
+        User authUser = (User) request.getAttribute("authenticatedUser");
+        if (authUser != null && authUser.getRole() == Role.PATIENT && !authUser.getId().equals(patientId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("You can only view your own medical records."));
+        }
+        return ResponseEntity.ok(medicalRecordRepository.findByPatientIdOrderByDateRecordedDesc(patientId));
     }
 
     @PostMapping

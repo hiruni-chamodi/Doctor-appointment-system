@@ -27,6 +27,7 @@ public class User {
     // callers should fall back to a sane default rather than treat null as zero capacity.
     private String dailyStartTime;
     private Integer maxPatientsPerDay;
+    private String token;
 
     public User() {}
 
@@ -68,4 +69,7 @@ public class User {
 
     public Integer getMaxPatientsPerDay() { return maxPatientsPerDay; }
     public void setMaxPatientsPerDay(Integer maxPatientsPerDay) { this.maxPatientsPerDay = maxPatientsPerDay; }
+
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
 }

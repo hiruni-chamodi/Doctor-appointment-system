@@ -24,7 +24,12 @@ public class AdminNotificationController {
     private SmsService smsService;
 
     @PostMapping("/notify-patient")
-    public ResponseEntity<?> notifyPatient(@RequestBody NotifyPatientRequest request) {
+    public ResponseEntity<?> notifyPatient(@RequestBody NotifyPatientRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser.getRole() != Role.ADMIN && authUser.getRole() != Role.RECEPTIONIST) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Only Admins and Receptionists can notify patients."));
+        }
+
         if (request.appointmentId() == null || request.appointmentId().isBlank()
                 || request.message() == null || request.message().isBlank()) {
             return ResponseEntity.badRequest()

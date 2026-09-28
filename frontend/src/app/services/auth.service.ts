@@ -11,6 +11,7 @@ export interface AuthUser {
   role: UserRole;
   phoneNumber?: string | null;
   specialty?: string | null;
+  token?: string;
 }
 
 const STORAGE_KEY = 'zenith_current_user';

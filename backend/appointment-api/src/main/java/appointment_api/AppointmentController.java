@@ -35,7 +35,7 @@ public class AppointmentController {
     private DoctorDayOverrideRepository doctorDayOverrideRepository;
 
     @PostMapping
-    public ResponseEntity<?> createAppointment(@RequestBody CreateAppointmentRequest request) {
+    public synchronized ResponseEntity<?> createAppointment(@RequestBody CreateAppointmentRequest request) {
         if (request.patientId() == null || request.patientId().isBlank()
                 || request.doctorId() == null || request.doctorId().isBlank()
                 || request.date() == null || request.date().isBlank()) {
@@ -103,24 +103,38 @@ public class AppointmentController {
     }
 
     @GetMapping("/patient/{patientId}")
-    public List<Appointment> getAppointmentsForPatient(@PathVariable String patientId) {
-        return appointmentRepository.findByPatientId(patientId);
+    public ResponseEntity<?> getAppointmentsForPatient(@PathVariable String patientId, jakarta.servlet.http.HttpServletRequest request) {
+        User authUser = (User) request.getAttribute("authenticatedUser");
+        if (authUser != null && authUser.getRole() == Role.PATIENT && !authUser.getId().equals(patientId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("You can only view your own appointments."));
+        }
+        return ResponseEntity.ok(appointmentRepository.findByPatientId(patientId));
     }
 
     @GetMapping("/all")
-    public List<Appointment> getAllAppointments() {
-        return appointmentRepository.findAll();
+    public ResponseEntity<?> getAllAppointments(jakarta.servlet.http.HttpServletRequest request) {
+        User authUser = (User) request.getAttribute("authenticatedUser");
+        if (authUser == null || (authUser.getRole() != Role.ADMIN && authUser.getRole() != Role.RECEPTIONIST)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Only Admins and Receptionists can view all appointments."));
+        }
+        return ResponseEntity.ok(appointmentRepository.findAll());
     }
 
     @GetMapping("/doctor/{doctorId}")
-    public List<Appointment> getAppointmentsForDoctor(
+    public ResponseEntity<?> getAppointmentsForDoctor(
             @PathVariable String doctorId,
-            @RequestParam(required = false) String status
+            @RequestParam(required = false) String status,
+            jakarta.servlet.http.HttpServletRequest request
     ) {
-        if (status != null && !status.isBlank()) {
-            return appointmentRepository.findByDoctorIdAndStatus(doctorId, status.toUpperCase());
+        User authUser = (User) request.getAttribute("authenticatedUser");
+        if (authUser == null || (authUser.getRole() == Role.PATIENT) || (authUser.getRole() == Role.DOCTOR && !authUser.getId().equals(doctorId))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Not authorized to view these appointments."));
         }
-        return appointmentRepository.findByDoctorId(doctorId);
+
+        if (status != null && !status.isBlank()) {
+            return ResponseEntity.ok(appointmentRepository.findByDoctorIdAndStatus(doctorId, status.toUpperCase()));
+        }
+        return ResponseEntity.ok(appointmentRepository.findByDoctorId(doctorId));
     }
 
     /** Times already held (pending or confirmed) for a doctor on a given date, so a scheduling UI can grey them out. */
@@ -157,7 +171,11 @@ public class AppointmentController {
 
     /** Admin assigns the actual time to a pending request that was made without one. */
     @PatchMapping("/{id}/schedule")
-    public ResponseEntity<?> scheduleAppointment(@PathVariable String id, @RequestBody ScheduleAppointmentRequest request) {
+    public synchronized ResponseEntity<?> scheduleAppointment(@PathVariable String id, @RequestBody ScheduleAppointmentRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser == null || (authUser.getRole() != Role.ADMIN && authUser.getRole() != Role.RECEPTIONIST)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Only Admins and Receptionists can schedule appointments."));
+        }
         if (request.time() == null || request.time().isBlank()) {
             return ResponseEntity.badRequest().body(new ErrorResponse("A time is required."));
         }
@@ -208,13 +226,17 @@ public class AppointmentController {
     }
 
     @PatchMapping("/{id}/accept")
-    public ResponseEntity<?> acceptAppointment(@PathVariable String id) {
+    public synchronized ResponseEntity<?> acceptAppointment(@PathVariable String id, jakarta.servlet.http.HttpServletRequest httpRequest) {
         Optional<Appointment> found = appointmentRepository.findById(id);
         if (found.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Appointment not found."));
         }
 
         Appointment appointment = found.get();
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser == null || authUser.getRole() == Role.PATIENT || (authUser.getRole() == Role.DOCTOR && !authUser.getId().equals(appointment.getDoctorId()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Not authorized to accept this appointment."));
+        }
         if (!"PENDING".equals(appointment.getStatus())) {
             return ResponseEntity.badRequest().body(new ErrorResponse("Only pending appointments can be accepted."));
         }
@@ -253,7 +275,7 @@ public class AppointmentController {
     }
 
     @PatchMapping("/{id}/reject")
-    public ResponseEntity<?> rejectAppointment(@PathVariable String id, @RequestBody RejectAppointmentRequest request) {
+    public ResponseEntity<?> rejectAppointment(@PathVariable String id, @RequestBody RejectAppointmentRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
         if (request.reason() == null || request.reason().isBlank()) {
             return ResponseEntity.badRequest().body(new ErrorResponse("A reason is required to reject an appointment."));
         }
@@ -264,6 +286,10 @@ public class AppointmentController {
         }
 
         Appointment appointment = found.get();
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser == null || authUser.getRole() == Role.PATIENT || (authUser.getRole() == Role.DOCTOR && !authUser.getId().equals(appointment.getDoctorId()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Not authorized to reject this appointment."));
+        }
         if (!"PENDING".equals(appointment.getStatus())) {
             return ResponseEntity.badRequest().body(new ErrorResponse("Only pending appointments can be rejected."));
         }
@@ -277,7 +303,8 @@ public class AppointmentController {
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateAppointmentStatus(
             @PathVariable String id,
-            @RequestParam String status
+            @RequestParam String status,
+            jakarta.servlet.http.HttpServletRequest httpRequest
     ) {
         String normalizedStatus = status.toUpperCase();
         if (!List.of("CANCELED", "CONFIRMED", "REJECTED").contains(normalizedStatus)) {
@@ -291,6 +318,11 @@ public class AppointmentController {
         }
 
         Appointment appointment = found.get();
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser == null || (authUser.getRole() == Role.PATIENT && (!authUser.getId().equals(appointment.getPatientId()) || !"CANCELED".equals(normalizedStatus)))
+             || (authUser.getRole() == Role.DOCTOR && !authUser.getId().equals(appointment.getDoctorId()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Not authorized to update this appointment."));
+        }
         if ("CANCELED".equals(normalizedStatus)
                 && !"PENDING".equals(appointment.getStatus())
                 && !"CONFIRMED".equals(appointment.getStatus())) {

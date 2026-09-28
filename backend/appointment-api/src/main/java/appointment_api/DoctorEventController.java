@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/doctor-events")
@@ -17,12 +16,21 @@ public class DoctorEventController {
     private DoctorEventRepository doctorEventRepository;
 
     @GetMapping("/doctor/{doctorId}")
-    public List<DoctorEvent> getForDoctor(@PathVariable String doctorId) {
-        return doctorEventRepository.findByDoctorIdOrderByDateAsc(doctorId);
+    public ResponseEntity<?> getForDoctor(@PathVariable String doctorId, jakarta.servlet.http.HttpServletRequest httpRequest) {
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser == null || (authUser.getRole() == Role.PATIENT)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Not authorized to view doctor events."));
+        }
+        return ResponseEntity.ok(doctorEventRepository.findByDoctorIdOrderByDateAsc(doctorId));
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody CreateDoctorEventRequest request) {
+    public ResponseEntity<?> create(@RequestBody CreateDoctorEventRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
+        User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+        if (authUser == null || authUser.getRole() == Role.PATIENT || (authUser.getRole() == Role.DOCTOR && !authUser.getId().equals(request.doctorId()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Not authorized to create an event for this doctor."));
+        }
+
         if (request.doctorId() == null || request.doctorId().isBlank()
                 || request.date() == null || request.date().isBlank()
                 || request.title() == null || request.title().isBlank()) {
@@ -37,8 +45,13 @@ public class DoctorEventController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable String id) {
-        if (doctorEventRepository.existsById(id)) {
+    public ResponseEntity<?> delete(@PathVariable String id, jakarta.servlet.http.HttpServletRequest httpRequest) {
+        java.util.Optional<DoctorEvent> event = doctorEventRepository.findById(id);
+        if (event.isPresent()) {
+            User authUser = (User) httpRequest.getAttribute("authenticatedUser");
+            if (authUser == null || authUser.getRole() == Role.PATIENT || (authUser.getRole() == Role.DOCTOR && !authUser.getId().equals(event.get().getDoctorId()))) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("Not authorized to delete this event."));
+            }
             doctorEventRepository.deleteById(id);
         }
         return ResponseEntity.noContent().build();

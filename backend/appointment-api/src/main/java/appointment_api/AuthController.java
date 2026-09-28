@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -16,6 +17,12 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private SmsService smsService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
@@ -43,6 +50,17 @@ public class AuthController {
         User user = new User(request.fullName().trim(), normalizedEmail, passwordHash, request.role(),
             blankToNull(request.phoneNumber()), request.specialty());
         User saved = userRepository.save(user);
+        saved.setToken(jwtUtil.generateToken(saved.getId()));
+        saved = userRepository.save(saved);
+
+        if (request.role() == Role.PATIENT && saved.getPhoneNumber() != null) {
+            String message = "Welcome " + saved.getFullName() + "! Your account has been created successfully.";
+            try {
+                smsService.send(saved.getPhoneNumber(), message);
+            } catch (Exception e) {
+                System.err.println("⚠️ Could not send welcome SMS: " + e.getMessage());
+            }
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.fromUser(saved));
     }
@@ -59,12 +77,23 @@ public class AuthController {
                     .body(new ErrorResponse("Invalid email or password."));
         }
 
-        String normalizedEmail = request.email().trim().toLowerCase();
+        String identifier = request.email().trim();
+        Optional<User> userOpt;
 
-        return userRepository.findByEmail(normalizedEmail)
+        if (identifier.contains("@")) {
+            userOpt = userRepository.findByEmail(identifier.toLowerCase());
+        } else {
+            userOpt = userRepository.findByFullName(identifier);
+        }
+
+        return userOpt
                 .filter(user -> passwordEncoder.matches(request.password(), user.getPasswordHash()))
-                .<ResponseEntity<?>>map(user -> ResponseEntity.ok(UserResponse.fromUser(user)))
+                .<ResponseEntity<?>>map(user -> {
+                    user.setToken(jwtUtil.generateToken(user.getId()));
+                    userRepository.save(user);
+                    return ResponseEntity.ok(UserResponse.fromUser(user));
+                })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ErrorResponse("Invalid email or password.")));
+                        .body(new ErrorResponse("Invalid email/name or password.")));
     }
 }

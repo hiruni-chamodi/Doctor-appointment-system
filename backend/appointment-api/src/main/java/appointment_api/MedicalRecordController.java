@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/medical-records")
@@ -26,8 +25,33 @@ public class MedicalRecordController {
     private UserRepository userRepository;
 
     @GetMapping("/patient/{patientId}")
-    public List<MedicalRecord> getPatientRecords(@PathVariable String patientId) {
-        return medicalRecordRepository.findByPatientIdOrderByDateRecordedDesc(patientId);
+    public ResponseEntity<?> getPatientRecords(@PathVariable String patientId, jakarta.servlet.http.HttpServletRequest request) {
+        User authUser = (User) request.getAttribute("authenticatedUser");
+        if (authUser != null && authUser.getRole() == Role.PATIENT && !authUser.getId().equals(patientId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("You can only view your own medical records."));
+        }
+        
+        java.util.List<MedicalRecord> records = medicalRecordRepository.findByPatientIdOrderByDateRecordedDesc(patientId);
+        
+        if (authUser != null && authUser.getRole() == Role.ADMIN) {
+            records = records.stream().map(record -> {
+                MedicalRecord scrubbed = new MedicalRecord();
+                scrubbed.setId(record.getId());
+                scrubbed.setPatientId(record.getPatientId());
+                scrubbed.setDoctorId(null);
+                scrubbed.setDoctorName("Hidden");
+                scrubbed.setHealthCondition("Hidden (Admin View)");
+                scrubbed.setWeight(null);
+                scrubbed.setBloodPressure(null);
+                scrubbed.setHeartRate(null);
+                scrubbed.setMedicinesProvided(null);
+                scrubbed.setAdditionalNotes(null);
+                scrubbed.setDateRecorded(record.getDateRecorded());
+                return scrubbed;
+            }).toList();
+        }
+        
+        return ResponseEntity.ok(records);
     }
 
     @PostMapping

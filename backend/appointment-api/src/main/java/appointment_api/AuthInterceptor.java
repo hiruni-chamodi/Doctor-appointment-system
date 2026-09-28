@@ -13,9 +13,6 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
@@ -25,13 +22,10 @@ public class AuthInterceptor implements HandlerInterceptor {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            String userId = jwtUtil.validateTokenAndGetUserId(token);
-            if (userId != null) {
-                Optional<User> user = userRepository.findById(userId);
-                if (user.isPresent() && token.equals(user.get().getToken())) {
-                    request.setAttribute("authenticatedUser", user.get());
-                    return true;
-                }
+            Optional<User> user = userRepository.findByToken(token);
+            if (user.isPresent()) {
+                request.setAttribute("authenticatedUser", user.get());
+                return true;
             }
         }
 
